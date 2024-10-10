@@ -2,17 +2,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.myserverpj.model;
-
-import java.io.Serializable;
+package com.mycompany.client.model;
 
 /**
  *
  * @author quang
  */
-public class Player implements Serializable {
-
-    private static final long serialVersionUID = 33L;
+public class Player {
     private String ID;
     private String username;
     private String password;
@@ -76,7 +72,7 @@ public class Player implements Serializable {
     public void setScore(int score) {
         this.score = score;
     }
-
+    
     public void updateScore(int score) {
         this.score += score;
         // goi database
