@@ -5,14 +5,16 @@
 package com.mycompany.myserverpj.model;
 
 import com.mycompany.shared.Message;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mycompany.shared.Player;
 import com.mycompany.myserverpj.model.control.PlayerControler;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -44,31 +46,33 @@ public class ClientThread extends Thread {
     @Override
     public void run() {
         try {
-            objOut = new ObjectOutputStream(clientSocket.getOutputStream()); 
-            objIn = new ObjectInputStream(clientSocket.getInputStream()); 
+            objOut = new ObjectOutputStream(clientSocket.getOutputStream());
+            objIn = new ObjectInputStream(clientSocket.getInputStream());
+            control = new PlayerControler(objOut, objIn);
             while (true) {
                 // Chờ thông điệp từ client
                 Message message = (Message) objIn.readObject();
-                System.out.println("vẫn ok");
+                System.out.println(message.getType()+" "+message.getContent().toString());
                 // Xử lý yêu cầu đăng nhập
                 if (message.getType().equals("LOGIN")) {
-                    HashMap<String, String> data
-                            = (HashMap<String, String>) message.getContent();
-                    control = new PlayerControler();
-                    this.player = control.getPlayer(data.get("username"),
-                            data.get("password"));
-                    if (player != null) {
-                        // Gửi phản hồi đăng nhập thành công
-                        objOut.writeObject(new Message("LOGIN_SUCCESS", player));
-                    } else {
-                        // Gửi phản hồi đăng nhập thất bại
-                        objOut.writeObject(new Message("LOGIN_FAILED", null));
-                    }
+                    player = control.login(message);
                 }
+                else if(message.getType().equals("CHECK_DUP")) {
+                    control.checkDuplicate(message);
+                }
+                else if(message.getType().equals("REGISTER")) {
+                    control.register(message);
+                }
+                
             }
         } catch (IOException | ClassNotFoundException e) {
             System.out.println(Arrays.toString(e.getStackTrace()));
+        } catch (SQLException ex) {
+            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    //login 
+   
 
 }

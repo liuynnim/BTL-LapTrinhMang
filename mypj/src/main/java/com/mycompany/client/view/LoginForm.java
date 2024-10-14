@@ -7,9 +7,9 @@ package com.mycompany.client.view;
 import com.mycompany.client.control.ClientSocket;
 import java.awt.Container;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -19,6 +19,7 @@ public class LoginForm extends javax.swing.JPanel {
 
     /**
      * Creates new form LoginFrom
+     *
      * @param client
      */
     public LoginForm(ClientSocket client) {
@@ -119,39 +120,45 @@ public class LoginForm extends javax.swing.JPanel {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         String username = jTextField1.getText();
-        String password = jPasswordField1.getSelectedText();
+        String password = new String(jPasswordField1.getPassword());
         try {
-            if(client.Login(username, password)) {
-                System.out.println("ok");
+            if (client.Login(username, password)) {
+                // chuyen toi giao dien main
             } else {
-                System.out.println("sai");
+                // gui thong bao loi
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Thông tin đăng nhập sai",
+                        "Login_False",
+                        JOptionPane.ERROR_MESSAGE
+                );
             }
         } catch (IOException ex) {
             Logger.getLogger(LoginForm.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(LoginForm.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-            Container parent = this.getParent();
-            registerFrom = new RegisterForm();
-            registerFrom.setBounds(0, 0, 400, 300);
-            registerFrom.setVisible(true);
-            parent.remove(this);
-            parent.add(registerFrom);
-            parent.revalidate();
-            parent.repaint();
+        Container parent = this.getParent();
+        registerFrom = new RegisterForm(client);
+        registerFrom.setBounds(0, 0, 400, 300);
+        registerFrom.setVisible(true);
+        parent.remove(this);
+        parent.add(registerFrom);
+        parent.revalidate();
+        parent.repaint();
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-        
-        
+
+
     }//GEN-LAST:event_jTextField1ActionPerformed
 
     private RegisterForm registerFrom;
-    private ClientSocket client;
+    private final ClientSocket client;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;

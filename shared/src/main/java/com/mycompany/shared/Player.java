@@ -2,13 +2,17 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.client.model;
+package com.mycompany.shared;
+
+import java.io.Serializable;
 
 /**
  *
  * @author quang
  */
-public class Player {
+public class Player implements Serializable {
+    private static final long serialVersionUID = 123L;
+    
     private String ID;
     private String username;
     private String password;

@@ -23,11 +23,7 @@ public class MainFrame extends javax.swing.JFrame {
     public MainFrame() throws IOException {
         initComponents();
         client = new ClientSocket();
-        if (client.requestConnection() != null) {
-            System.err.println("ok");
-        } else {
-            System.err.println("lỗi rồi");
-        }
+        client.requestConnection();
         initApp();
     }
 
