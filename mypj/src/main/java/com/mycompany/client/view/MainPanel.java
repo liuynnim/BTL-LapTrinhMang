@@ -4,6 +4,12 @@
  */
 package com.mycompany.client.view;
 
+import com.mycompany.client.control.ClientSocket;
+import com.mycompany.shared.Player;
+import java.awt.Dimension;
+import java.util.HashMap;
+import javax.swing.JScrollPane;
+
 /**
  *
  * @author quang
@@ -11,10 +17,14 @@ package com.mycompany.client.view;
 public class MainPanel extends javax.swing.JPanel {
 
     /**
-     * Creates new form MaintPanel
+     * Creates new form MainPanel
+     *
+     * @param client
      */
-    public MainPanel() {
+    public MainPanel(ClientSocket client) {
         initComponents();
+        this.client = client;
+        takeInfo();
     }
 
     /**
@@ -26,74 +36,144 @@ public class MainPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPopupMenu1 = new javax.swing.JPopupMenu();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jList2 = new javax.swing.JList<>();
-        jScrollPane3 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
-        jScrollPane4 = new javax.swing.JScrollPane();
+        jScrollPane2 = new javax.swing.JScrollPane();
         jTextArea2 = new javax.swing.JTextArea();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jList1 = new javax.swing.JList<>();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jList2 = new javax.swing.JList<>();
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jTextArea1.addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentHidden(java.awt.event.ComponentEvent evt) {
+                jTextArea1ComponentHidden(evt);
+            }
+        });
+        jScrollPane1.setViewportView(jTextArea1);
+
+        jTextArea2.setColumns(20);
+        jTextArea2.setRows(5);
+        jScrollPane2.setViewportView(jTextArea2);
 
         jList1.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
-        jScrollPane1.setViewportView(jList1);
+        jScrollPane3.setViewportView(jList1);
 
         jList2.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
         });
-        jScrollPane2.setViewportView(jList2);
-
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jTextArea1.setText("Hạng 1:\n\nHạng 2;\n\nHạng 3:");
-        jScrollPane3.setViewportView(jTextArea1);
-
-        jTextArea2.setColumns(20);
-        jTextArea2.setRows(5);
-        jScrollPane4.setViewportView(jTextArea2);
+        jScrollPane4.setViewportView(jList2);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 289, Short.MAX_VALUE)
-                    .addComponent(jScrollPane2))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
+                    .addComponent(jScrollPane4))
                 .addGap(0, 0, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE)))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, 0)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 214, Short.MAX_VALUE)
-                    .addComponent(jScrollPane2))
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 214, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(jScrollPane4)
                 .addGap(0, 0, 0))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jTextArea1ComponentHidden(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_jTextArea1ComponentHidden
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextArea1ComponentHidden
 
+    private void takeInfo() {
+        // hiển thị 3 người chơi có điểm cao nhất
+        //tạo và lấy data từ server về
+        HashMap<String, HashMap<String, String>> data;
+        data = client.getThreeHighest();
+        // tạo format để hiển thị 
+        String format = "Hạng %d: %-15s%s%s\n";
+        int totalLength = 50; // Tổng chiều dài dải ký tự
+        int pointLength = 10;  // Giữ một khoảng đủ cho điểm (10 ký tự)
+        System.out.println(data.get("1").get("playerName"));
+        String player1 = data.get("1").get("playerName");
+        String score1 = data.get("1").get("score");
+
+        String player2 = data.get("2").get("playerName");
+        String score2 = data.get("2").get("score");
+
+        String player3 = data.get("3").get("playerName");
+        String score3 = data.get("3").get("score");
+
+        // loại bỏ ScrollPanel của phần hiển thị 3 người chơi cao điểm và thông tin các nhân
+        jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        jScrollPane2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane2.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        //tạo kích thước của phần thông tin 3 người chơi cao điểm
+        jTextArea1.setPreferredSize(new Dimension(280, 86));
+        //hiển thị thông tin 3 người chơi
+        jTextArea1.setText(
+                String.format(
+                        format,
+                        1,
+                        player1,
+                        " ".repeat(totalLength - player1.length() - pointLength),
+                        score1)
+                + "\n"
+                + String.format(
+                        format,
+                        2,
+                        player2,
+                        " ".repeat(totalLength - player2.length() - pointLength),
+                        score2)
+                + "\n"
+                + String.format(
+                        format,
+                        3,
+                        player3,
+                        " ".repeat(totalLength - player3.length() - pointLength),
+                        score3)
+        );
+        
+        // hiển thị thông tin của người chơi
+        setInfoPlayer();
+    }
+
+    // hàm hiển thị thông tin cá nhân
+    // viết riêng vì cập nhật lại môi khi điểm thay đổi
+    public void setInfoPlayer(){
+        String myName = client.getPlayer().getPlayerName();
+        HashMap<String, String> data = client.getRank(client.getPlayer().getID());
+        String score = data.get("score");
+        String rank = data.get("rank");
+        
+        jTextArea2.setText(
+                "Tên người chơi:\n" + myName 
+                + "\n" + "score: " + score + 
+                "\nRank: " + rank);
+    }
+    private ClientSocket client;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JList<String> jList1;
     private javax.swing.JList<String> jList2;
-    private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;

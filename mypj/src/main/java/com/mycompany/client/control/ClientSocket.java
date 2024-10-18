@@ -99,7 +99,7 @@ public class ClientSocket {
 
             while (true) {
                 Message mess = (Message) objIn.readObject();
-                if ("NO".equals(mess.getType())) {
+                if ("YES".equals(mess.getType())) {
                     return true;
                 } else {
                     return false;
@@ -108,5 +108,43 @@ public class ClientSocket {
         } catch (Exception e) {
         }
         return false;
+    }
+    
+    public HashMap<String, HashMap<String, String>> getThreeHighest() {
+        try {
+            objOut.writeObject(new Message("THREE_HIGHEST", null));
+            while(true) {
+                Message mess = (Message) objIn.readObject();
+                HashMap<String, HashMap<String, String>> data;
+                if(mess.getType().equals("YES")) {
+                    data = (HashMap<String, HashMap<String, String>>)mess.getContent();
+                    return data;
+                }
+            }
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+    
+    public HashMap<String,String> getRank(String ID) {
+        try {
+            objOut.writeObject(new Message("GET_RANK", ID));
+            HashMap<String, String> data;
+            while(true) {
+                Message mess = (Message) objIn.readObject();
+                System.out.println(mess.getType());
+                if(mess.getType().equals("YES")) {
+                    System.out.println("ok");
+                    data = (HashMap<String, String>)mess.getContent();
+                    return data;
+                }
+            }
+        } catch (Exception e) {
+        }
+        return null;
     }
 }

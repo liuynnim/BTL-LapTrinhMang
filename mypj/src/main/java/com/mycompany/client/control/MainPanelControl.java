@@ -8,6 +8,6 @@ package com.mycompany.client.control;
  *
  * @author quang
  */
-public class RegisterControl {
+public class MainPanelControl {
     
 }

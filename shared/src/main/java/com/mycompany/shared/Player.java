@@ -19,6 +19,7 @@ public class Player implements Serializable {
     private String playerName;
     private String email;
     private int score;
+    private int rank;
 
     public Player(String ID, String username, String password, String playerName, String email, int score) {
         this.ID = ID;
@@ -81,4 +82,14 @@ public class Player implements Serializable {
         this.score += score;
         // goi database
     }
+
+    public int getRank() {
+        return rank;
+    }
+
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
+    
+    
 }

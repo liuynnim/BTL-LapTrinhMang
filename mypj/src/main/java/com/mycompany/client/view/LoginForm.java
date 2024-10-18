@@ -123,7 +123,14 @@ public class LoginForm extends javax.swing.JPanel {
         String password = new String(jPasswordField1.getPassword());
         try {
             if (client.Login(username, password)) {
-                // chuyen toi giao dien main
+                Container parent = this.getParent();
+                mainPanel = new MainPanel(client);
+                mainPanel.setBounds(0, 0, 400, 300);
+                mainPanel.setVisible(true);
+                parent.remove(this);
+                parent.add(mainPanel);
+                parent.revalidate();
+                parent.repaint();
             } else {
                 // gui thong bao loi
                 JOptionPane.showMessageDialog(
@@ -156,7 +163,8 @@ public class LoginForm extends javax.swing.JPanel {
 
 
     }//GEN-LAST:event_jTextField1ActionPerformed
-
+    
+    private MainPanel mainPanel;
     private RegisterForm registerFrom;
     private final ClientSocket client;
     // Variables declaration - do not modify//GEN-BEGIN:variables

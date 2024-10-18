@@ -43,6 +43,7 @@ public class PlayerControler {
         if (player != null) {
             // Gửi phản hồi đăng nhập thành công
             objOut.writeObject(new Message("LOGIN_SUCCESS", player));
+            return player;
         } else {
             // Gửi phản hồi đăng nhập thất bại
             objOut.writeObject(new Message("LOGIN_FAILED", null));
@@ -62,10 +63,8 @@ public class PlayerControler {
         }
         if ("USERNAME".equals(field)) {
             if (checkDuplicates("username", data.get(field))) {
-                System.out.println("trung roi");
                 objOut.writeObject(new Message("YES", null));
             } else {
-                System.out.println("khong trung");
                 objOut.writeObject(new Message("NO", null));
             }
         } else if ("EMAIL".equals(field)) {
@@ -84,15 +83,44 @@ public class PlayerControler {
         return true;
     }
 
-    public boolean register(Message message) throws SQLException {
+    public void register(Message message) throws SQLException, IOException {
         HashMap<String, String> data
                 = (HashMap<String, String>) message.getContent();
-        return register(
+        boolean c = register(
                 data.get("username"),
                 data.get("password"),
                 data.get("email"),
                 data.get("playerName")
         );
+        if (c) {
+            objOut.writeObject(new Message("YES", null));
+        } else {
+            objOut.writeObject(new Message("NO", null));
+        }
+    }
+
+    // gửi các thông tin để hiển thị trên màn hình chính
+    public boolean getThreeHighest() {
+        // gửi về 3 người chơi cao điểm nhất
+        try {
+            objOut.writeObject(new Message("YES", getHighest()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
+    public void getRankPlayer(Message message) {
+        try {
+            HashMap<String, String> rs = getPlayerRankAndScore((String) message.getContent());
+            if (rs.isEmpty()) {
+                objOut.writeObject(new Message("NO", null));
+            } else {
+                objOut.writeObject(new Message("YES", rs));
+            }
+        } catch (Exception e) {
+        }
     }
 
     //các hàm DAO làm việc với DB
@@ -113,6 +141,8 @@ public class PlayerControler {
                         resultSet.getString("email"),
                         resultSet.getInt("score")
                 );
+                // thêm chô này
+
                 return player;
             } else {
                 return null; // Không tìm thấy người chơi
@@ -136,6 +166,12 @@ public class PlayerControler {
                 playerData.put(
                         "playerName",
                         resultSet.getString("playerName")
+                );
+                playerData.put(
+                        "score",
+                        String.valueOf(
+                                resultSet.getString("score")
+                        )
                 );
                 rs.put(String.valueOf(rank), playerData);
                 rank++;
@@ -185,6 +221,31 @@ public class PlayerControler {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private HashMap<String, String> getPlayerRankAndScore(String playerId) {
+        try (Connection connection = ConnectDB.getConnection()) {
+            String query = "SELECT rank, score FROM ( "
+                    + "SELECT ID, score, RANK() OVER (ORDER BY score DESC) AS rank "
+                    + "FROM player) AS ranked "
+                    + "WHERE ID = ?";
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setString(1, playerId);
+            ResultSet resultSet = statement.executeQuery();
+            HashMap<String, String> data = new HashMap<>();
+
+            if (resultSet.next()) {
+                int rank = resultSet.getInt("rank");
+                int score = resultSet.getInt("score");
+                data.put("rank", String.valueOf(rank));
+                data.put("score", String.valueOf(score));
+            }
+            return data;
+        } catch (Exception e) {
+            e.printStackTrace(); // In ra thông tin lỗi
+        }
+
+        return null; // Trả về null nếu không tìm thấy người chơi
     }
 
 }

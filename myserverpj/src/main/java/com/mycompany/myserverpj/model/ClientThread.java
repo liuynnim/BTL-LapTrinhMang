@@ -12,6 +12,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,11 +24,12 @@ import java.util.logging.Logger;
 public class ClientThread extends Thread {
 
     private final Socket clientSocket;
-    private Player player;
     private PlayerControler control;
     private ObjectOutputStream objOut;
     private ObjectInputStream objIn;
+    private Player player;
     private boolean status;
+    private ArrayList<ClientThread> listPlayer;
 
     public ClientThread(Socket clientSocket) {
         this.clientSocket = clientSocket;
@@ -35,6 +37,16 @@ public class ClientThread extends Thread {
         start();
     }
 
+    public ArrayList<ClientThread> getListPlayer() {
+        return listPlayer;
+    }
+
+    public void setListPlayer(ArrayList<ClientThread> listPlayer) {
+        this.listPlayer = listPlayer;
+    }
+    
+    
+    
     public boolean isStatus() {
         return status;
     }
@@ -52,7 +64,7 @@ public class ClientThread extends Thread {
             while (true) {
                 // Chờ thông điệp từ client
                 Message message = (Message) objIn.readObject();
-                System.out.println(message.getType()+" "+message.getContent().toString());
+                System.out.println(message.getType() + " " + (message.getContent() != null ? message.getContent().toString() : "Content is null"));
                 // Xử lý yêu cầu đăng nhập
                 if (message.getType().equals("LOGIN")) {
                     player = control.login(message);
@@ -63,7 +75,13 @@ public class ClientThread extends Thread {
                 else if(message.getType().equals("REGISTER")) {
                     control.register(message);
                 }
-                
+                else if(message.getType().equals("THREE_HIGHEST")) {
+                    control.getThreeHighest();
+                } 
+                else if(message.getType().equals("GET_RANK"))
+                {
+                    control.getRankPlayer(message);
+                }
             }
         } catch (IOException | ClassNotFoundException e) {
             System.out.println(Arrays.toString(e.getStackTrace()));
@@ -72,7 +90,14 @@ public class ClientThread extends Thread {
         }
     }
 
-    //login 
+    //gửi list player
    
+    private void getListPlayers() {
+        try {
+            objOut.writeObject(new Message("LIST_PLAYER", getListPlayer()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }
