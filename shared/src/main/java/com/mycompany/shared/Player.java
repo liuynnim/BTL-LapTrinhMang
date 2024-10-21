@@ -20,6 +20,7 @@ public class Player implements Serializable {
     private String email;
     private int score;
     private int rank;
+    private boolean status;
 
     public Player(String ID, String username, String password, String playerName, String email, int score) {
         this.ID = ID;
@@ -89,6 +90,14 @@ public class Player implements Serializable {
 
     public void setRank(int rank) {
         this.rank = rank;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
     
     

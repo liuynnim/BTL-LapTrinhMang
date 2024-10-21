@@ -5,11 +5,14 @@
 package com.mycompany.client.view;
 
 import com.mycompany.client.control.ClientSocket;
+import com.mycompany.client.model.ClientState;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.Timer;
@@ -122,14 +125,21 @@ public class RegisterForm extends javax.swing.JPanel {
         String email = jTextField2.getText();
         String playerName = jTextField3.getText();
         if (password.equals(repassword)) {
-            if (!client.register(username, password, email, playerName)) {
+            client.register(username, password, email, playerName);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(RegisterForm.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            if (client.getState()==ClientState.REGISTER_FAILED) {
                 JOptionPane.showMessageDialog(
                         this,
                         "Vui lòng thử lại sau!",
                         "LỖI MÁY CHỦ",
                         HEIGHT
                 );
-            } else {
+            } 
+            else if(client.getState()==ClientState.REGISTER_SUCCESS) {
                 Container parent = this.getParent();
                 loginFrom = new LoginForm(client);
                 loginFrom.setBounds(0, 0, 400, 300);
@@ -155,7 +165,11 @@ public class RegisterForm extends javax.swing.JPanel {
     private void checkDuplicate() {
         // tạo thời gian chờ 5s
         Timer timer = new Timer(1000, (ActionEvent e) -> {
-            checkField(currentField); // Chỉ kiểm tra trường mà người dùng đã nhập gần nhất
+            try {
+                checkField(currentField); // Chỉ kiểm tra trường mà người dùng đã nhập gần nhất
+            } catch (InterruptedException ex) {
+                Logger.getLogger(RegisterForm.class.getName()).log(Level.SEVERE, null, ex);
+            }
         });
         // không lặp lại khi chạy xong
         timer.setRepeats(false);
@@ -182,19 +196,20 @@ public class RegisterForm extends javax.swing.JPanel {
     }
 
     //lấy kết quả từ server và hiển thị thông báo nếu trùng lặp.
-    private void checkField(String field) {
+    private void checkField(String field) throws InterruptedException {
         switch (field) {
             case "username" -> {
                 String username = jTextField1.getText();
                 if (!username.isEmpty()) {
-                    boolean usernameResult = client.checkDuplicates(
+                    client.checkDuplicates(
                             "USERNAME",
                             username
                     );
-                    System.out.println(usernameResult);
-                    if (!usernameResult) {
+                    Thread.sleep(100);
+                    if (client.getState()==ClientState.HV_DUP) {
                         jLabel7.setText("Tên đăng nhập đã được sử dụng");
-                    } else {
+                    } 
+                    else if (client.getState()==ClientState.NO_DUP) {
                         jLabel7.setText("");
                     }
                 }
@@ -203,14 +218,15 @@ public class RegisterForm extends javax.swing.JPanel {
             case "email" -> {
                 String email = jTextField2.getText();
                 if (!email.isEmpty()) {
-                    boolean emailResult = client.checkDuplicates(
+                    client.checkDuplicates(
                             "EMAIL",
                             email
                     );
-                    System.out.println(emailResult);
-                    if (!emailResult) {
+                    Thread.sleep(100);
+                    if (client.getState()==ClientState.HV_DUP) {
                         jLabel8.setText("Email đã được sử dụng");
-                    } else {
+                    } 
+                    else if (client.getState()==ClientState.NO_DUP) {
                         jLabel8.setText("");
                     }
                 }
@@ -219,14 +235,15 @@ public class RegisterForm extends javax.swing.JPanel {
             case "playerName" -> {
                 String playerName = jTextField3.getText();
                 if (!playerName.isEmpty()) {
-                    boolean playerNameResult = client.checkDuplicates(
+                    client.checkDuplicates(
                             "PLAYER_NAME",
                             playerName
                     );
-                    System.out.println(playerNameResult);
-                    if (!playerNameResult) {
+                    Thread.sleep(100);
+                    if (client.getState()==ClientState.HV_DUP) {
                         jLabel9.setText("Tên người chơi đã được sử dụng");
-                    }else {
+                    }
+                    else if (client.getState()==ClientState.NO_DUP) {
                         jLabel9.setText("");
                     }
                 }

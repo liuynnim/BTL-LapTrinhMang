@@ -5,6 +5,7 @@
 package com.mycompany.client.view;
 
 import com.mycompany.client.control.ClientSocket;
+import com.mycompany.client.model.ClientState;
 import java.awt.Container;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -122,16 +123,25 @@ public class LoginForm extends javax.swing.JPanel {
         String username = jTextField1.getText();
         String password = new String(jPasswordField1.getPassword());
         try {
-            if (client.Login(username, password)) {
+            client.setState(ClientState.NULL);
+            client.Login(username, password);
+            int retries = 0;
+            int maxRetries = 50;  // Giới hạn số lần kiểm tra
+            while (client.getState() == ClientState.NULL && retries < maxRetries) {
+                Thread.sleep(100);  // Chờ 100ms giữa mỗi lần kiểm tra
+                retries++;
+            }
+            if (client.getState() == ClientState.LOGIN_SUCCESS) {
                 Container parent = this.getParent();
                 mainPanel = new MainPanel(client);
+                client.setMainPanel(mainPanel);
                 mainPanel.setBounds(0, 0, 400, 300);
                 mainPanel.setVisible(true);
                 parent.remove(this);
                 parent.add(mainPanel);
                 parent.revalidate();
                 parent.repaint();
-            } else {
+            } else if (client.getState() == ClientState.LOGIN_FAILED) {
                 // gui thong bao loi
                 JOptionPane.showMessageDialog(
                         this,
@@ -140,9 +150,7 @@ public class LoginForm extends javax.swing.JPanel {
                         JOptionPane.ERROR_MESSAGE
                 );
             }
-        } catch (IOException ex) {
-            Logger.getLogger(LoginForm.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
+        } catch (IOException | ClassNotFoundException | InterruptedException ex) {
             Logger.getLogger(LoginForm.class.getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -163,7 +171,7 @@ public class LoginForm extends javax.swing.JPanel {
 
 
     }//GEN-LAST:event_jTextField1ActionPerformed
-    
+
     private MainPanel mainPanel;
     private RegisterForm registerFrom;
     private final ClientSocket client;
@@ -176,4 +184,8 @@ public class LoginForm extends javax.swing.JPanel {
     private javax.swing.JPasswordField jPasswordField1;
     private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
+
+    private void While(boolean b) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }

@@ -5,9 +5,21 @@
 package com.mycompany.client.view;
 
 import com.mycompany.client.control.ClientSocket;
+import com.mycompany.client.model.ClientState;
 import com.mycompany.shared.Player;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JScrollPane;
 
 /**
@@ -25,6 +37,7 @@ public class MainPanel extends javax.swing.JPanel {
         initComponents();
         this.client = client;
         takeInfo();
+        this.client.setMainPanel(this);
     }
 
     /**
@@ -44,6 +57,7 @@ public class MainPanel extends javax.swing.JPanel {
         jList1 = new javax.swing.JList<>();
         jScrollPane4 = new javax.swing.JScrollPane();
         jList2 = new javax.swing.JList<>();
+        jButton1 = new javax.swing.JButton();
 
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);
@@ -58,11 +72,6 @@ public class MainPanel extends javax.swing.JPanel {
         jTextArea2.setRows(5);
         jScrollPane2.setViewportView(jTextArea2);
 
-        jList1.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
         jScrollPane3.setViewportView(jList1);
 
         jList2.setModel(new javax.swing.AbstractListModel<String>() {
@@ -72,15 +81,29 @@ public class MainPanel extends javax.swing.JPanel {
         });
         jScrollPane4.setViewportView(jList2);
 
+        jButton1.setText("Tạo Phòng");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
-                    .addComponent(jScrollPane4))
-                .addGap(0, 0, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 280, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 280, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton1)
+                        .addGap(92, 92, 92)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)))
@@ -88,14 +111,16 @@ public class MainPanel extends javax.swing.JPanel {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 214, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0)
-                .addComponent(jScrollPane4)
-                .addGap(0, 0, 0))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, 0)
+                        .addComponent(jButton1))
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 214, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -103,16 +128,47 @@ public class MainPanel extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextArea1ComponentHidden
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        try {
+            client.newRoom();
+        } catch (IOException ex) {
+            Logger.getLogger(MainPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(MainPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        Container parent = this.getParent();
+        while (parent != null && !(parent instanceof JFrame)) {
+            parent = parent.getParent();  // Duyệt lên các thành phần cha
+        }
+        playRoom = new PlayRoom((JFrame) parent, client.getListPlayer());
+        playRoom.setBounds(0, 0, 400, 300);
+        playRoom.setVisible(true);
+        parent.remove(this);
+        parent.add(playRoom);
+        parent.revalidate();
+        parent.repaint();
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     private void takeInfo() {
         // hiển thị 3 người chơi có điểm cao nhất
         //tạo và lấy data từ server về
         HashMap<String, HashMap<String, String>> data;
-        data = client.getThreeHighest();
+        client.getThreeHighest();
+        while (client.getState() != ClientState.THREE_HIGHEST) {
+            try {
+                Thread.sleep(50); // Giảm thời gian chờ
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        data = (HashMap<String, HashMap<String, String>>) client.getData();
         // tạo format để hiển thị 
         String format = "Hạng %d: %-15s%s%s\n";
         int totalLength = 50; // Tổng chiều dài dải ký tự
         int pointLength = 10;  // Giữ một khoảng đủ cho điểm (10 ký tự)
-        System.out.println(data.get("1").get("playerName"));
         String player1 = data.get("1").get("playerName");
         String score1 = data.get("1").get("score");
 
@@ -152,26 +208,80 @@ public class MainPanel extends javax.swing.JPanel {
                         " ".repeat(totalLength - player3.length() - pointLength),
                         score3)
         );
-        
         // hiển thị thông tin của người chơi
         setInfoPlayer();
+        setListPlayer();
     }
 
     // hàm hiển thị thông tin cá nhân
     // viết riêng vì cập nhật lại môi khi điểm thay đổi
-    public void setInfoPlayer(){
+    public void setInfoPlayer() {
         String myName = client.getPlayer().getPlayerName();
-        HashMap<String, String> data = client.getRank(client.getPlayer().getID());
+        client.getRank(client.getPlayer().getID());
+        HashMap<String, String> data;
+
+        while (client.getState() != ClientState.GET_RANK) {
+            try {
+                Thread.sleep(50); // Giảm thời gian chờ
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        data = (HashMap<String, String>) client.getData();
         String score = data.get("score");
         String rank = data.get("rank");
-        
         jTextArea2.setText(
-                "Tên người chơi:\n" + myName 
-                + "\n" + "score: " + score + 
-                "\nRank: " + rank);
+                "Tên người chơi:\n" + myName
+                + "\n" + "score: " + score
+                + "\nRank: " + rank);
     }
-    private ClientSocket client;
+
+    // hiển thị danh sách người chơi 
+    public void setListPlayer() {
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        if (client.getListPlayer() != null) {
+            if (playRoom != null) {
+                playRoom.setListPlayer(client.getListPlayer());
+            }
+            for (Player pl : client.getListPlayer()) {
+                if (pl.getID().equals(client.getPlayer().getID())) {
+                    continue;
+                }
+                listModel.addElement(pl.getPlayerName());
+            }
+        }
+        // truyen vao playRoom
+        jList1.setModel(listModel);
+        jList1.setCellRenderer(new CustomListRenderer());
+        jList1.revalidate();  // Kiểm tra lại bố cục của JList
+        jList1.repaint();     // Vẽ lại JList để hiển thị các thay đổi
+        jScrollPane3.revalidate();
+        jScrollPane3.repaint();
+    }
+
+    public class CustomListRenderer extends DefaultListCellRenderer {
+
+        public Component getListCellRendererComponent(JList<?> list, Player value, int index,
+                boolean isSelected, boolean cellHasFocus) {
+            // Sử dụng mặc định để render phần tử
+            JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+            // Điều chỉnh màu nền dựa trên điều kiện (ở đây là chỉ số chẵn/lẻ)
+            if (!isSelected) { // Nếu không được chọn thì tùy chỉnh màu nền
+                if (value.isStatus()) {
+                    label.setBackground(Color.GREEN);  // Nếu true thì hiện màu xanh
+                } else {
+                    label.setBackground(Color.RED); // Nếu false thì hiện màu đỏ
+                }
+            }
+
+            return label;
+        }
+    }
+    private final ClientSocket client;
+    private PlayRoom playRoom;
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
     private javax.swing.JList<String> jList1;
     private javax.swing.JList<String> jList2;
     private javax.swing.JScrollPane jScrollPane1;

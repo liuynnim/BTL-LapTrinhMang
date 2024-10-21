@@ -5,6 +5,8 @@
 package com.mycompany.client.view;
 
 import com.mycompany.client.control.ClientSocket;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,6 +27,12 @@ public class MainFrame extends javax.swing.JFrame {
         client = new ClientSocket();
         client.requestConnection();
         initApp();
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                disconnectFromServer();  // Gọi hàm ngắt kết nối khi đóng cửa sổ
+            }
+        });
     }
 
     /**
@@ -57,6 +65,15 @@ public class MainFrame extends javax.swing.JFrame {
         loginFrom.setVisible(true);
         this.add(loginFrom);
         this.repaint();
+    }
+    
+    private void disconnectFromServer() {
+        try {
+            client.disconnection();
+            System.out.println("Disconnected from server");
+        } catch (IOException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**

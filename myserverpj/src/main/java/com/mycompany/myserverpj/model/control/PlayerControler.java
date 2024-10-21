@@ -7,7 +7,6 @@ package com.mycompany.myserverpj.model.control;
 import com.mycompany.shared.Message;
 import com.mycompany.shared.Player;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -26,11 +25,9 @@ import java.util.Set;
 public class PlayerControler {
 
     private final ObjectOutputStream objOut;
-    private final ObjectInputStream objIn;
 
-    public PlayerControler(ObjectOutputStream objOut, ObjectInputStream objIn) {
+    public PlayerControler(ObjectOutputStream objOut) {
         this.objOut = objOut;
-        this.objIn = objIn;
     }
 
     // các hàm xử lý sự kiện client
@@ -40,15 +37,8 @@ public class PlayerControler {
                 = (HashMap<String, String>) message.getContent();
         Player player = getPlayer(data.get("username"),
                 data.get("password"));
-        if (player != null) {
-            // Gửi phản hồi đăng nhập thành công
-            objOut.writeObject(new Message("LOGIN_SUCCESS", player));
+        if (player != null)
             return player;
-        } else {
-            // Gửi phản hồi đăng nhập thất bại
-            objOut.writeObject(new Message("LOGIN_FAILED", null));
-        }
-        objOut.flush();
         return null;
     }
 
@@ -63,21 +53,21 @@ public class PlayerControler {
         }
         if ("USERNAME".equals(field)) {
             if (checkDuplicates("username", data.get(field))) {
-                objOut.writeObject(new Message("YES", null));
+                objOut.writeObject(new Message("HV_DUP", null));
             } else {
-                objOut.writeObject(new Message("NO", null));
+                objOut.writeObject(new Message("NO_DUP", null));
             }
         } else if ("EMAIL".equals(field)) {
             if (checkDuplicates("email", data.get(field))) {
-                objOut.writeObject(new Message("YES", null));
+                objOut.writeObject(new Message("HV_DUP", null));
             } else {
-                objOut.writeObject(new Message("NO", null));
+                objOut.writeObject(new Message("NO_DUP", null));
             }
         } else if ("PLAYER_NAME".equals(field)) {
             if (checkDuplicates("playerName", data.get(field))) {
-                objOut.writeObject(new Message("YES", null));
+                objOut.writeObject(new Message("HV_DUP", null));
             } else {
-                objOut.writeObject(new Message("NO", null));
+                objOut.writeObject(new Message("NO_DUP", null));
             }
         }
         return true;
@@ -93,9 +83,9 @@ public class PlayerControler {
                 data.get("playerName")
         );
         if (c) {
-            objOut.writeObject(new Message("YES", null));
+            objOut.writeObject(new Message("REGISTER_SUCCESS", null));
         } else {
-            objOut.writeObject(new Message("NO", null));
+            objOut.writeObject(new Message("REGISTER_FAILED", null));
         }
     }
 
@@ -103,9 +93,8 @@ public class PlayerControler {
     public boolean getThreeHighest() {
         // gửi về 3 người chơi cao điểm nhất
         try {
-            objOut.writeObject(new Message("YES", getHighest()));
+            objOut.writeObject(new Message("THREE_HIGHEST", getHighest()));
         } catch (IOException e) {
-            e.printStackTrace();
         }
 
         return true;
@@ -113,13 +102,11 @@ public class PlayerControler {
 
     public void getRankPlayer(Message message) {
         try {
-            HashMap<String, String> rs = getPlayerRankAndScore((String) message.getContent());
-            if (rs.isEmpty()) {
-                objOut.writeObject(new Message("NO", null));
-            } else {
-                objOut.writeObject(new Message("YES", rs));
-            }
-        } catch (Exception e) {
+            objOut.writeObject(new Message(
+                    "GET_RANK",
+                    getPlayerRankAndScore((String) message.getContent()))
+            );
+        } catch (IOException e) {
         }
     }
 
@@ -148,7 +135,8 @@ public class PlayerControler {
                 return null; // Không tìm thấy người chơi
             }
         } catch (Exception e) {
-            e.printStackTrace(); // In ra thông tin lỗi
+            // In ra thông tin lỗi
+
         }
         return null; // Nếu có lỗi xảy ra
     }
@@ -178,7 +166,8 @@ public class PlayerControler {
             }
             return rs;
         } catch (Exception e) {
-            e.printStackTrace(); // In ra thông tin lỗi
+            // In ra thông tin lỗi
+
         }
         return null;
     }
@@ -196,13 +185,8 @@ public class PlayerControler {
             statement.setString(3, playerName);
             statement.setString(4, email);
             int rowsInserted = statement.executeUpdate();
-            if (rowsInserted > 0) {
-                return true;
-            } else {
-                return false;
-            }
+            return rowsInserted > 0;
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -218,7 +202,6 @@ public class PlayerControler {
                 return true;
             }
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -242,9 +225,8 @@ public class PlayerControler {
             }
             return data;
         } catch (Exception e) {
-            e.printStackTrace(); // In ra thông tin lỗi
+            // In ra thông tin lỗi
         }
-
         return null; // Trả về null nếu không tìm thấy người chơi
     }
 
