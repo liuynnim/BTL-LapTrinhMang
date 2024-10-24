@@ -4,6 +4,7 @@
  */
 package com.mycompany.client.view;
 
+import com.mycompany.client.control.ClientSocket;
 import com.mycompany.shared.Player;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -28,11 +29,26 @@ public class PlayRoom extends javax.swing.JPanel {
      * Creates new form PlayRoom
      *
      * @param frame
+     * @param list
+     * @param client
+     * @param mainPanel
+     * @param maPhong
      */
-    public PlayRoom(JFrame frame, ArrayList<Player> list) {
+    public PlayRoom(JFrame frame, ArrayList<Player> list, ClientSocket client, MainPanel mainPanel, String maPhong) {
         initComponents();
+        this.mainPanel = mainPanel;
         this.frame = frame;
         this.listPlayer = list;
+        this.client = client;
+        jScrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        jScrollPane2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane2.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        setThisPlayerInfo();
+        while (maPhong.length() < 3) {
+            maPhong = "0" + maPhong;
+        }
+        jLabel1.setText("Phòng " + maPhong);
     }
 
     /**
@@ -54,6 +70,7 @@ public class PlayRoom extends javax.swing.JPanel {
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
 
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);
@@ -66,7 +83,7 @@ public class PlayRoom extends javax.swing.JPanel {
         jLabel1.setText("Phòng 001");
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabel2.setText("10s");
+        jLabel2.setText("CHUẨN BỊ");
 
         jButton1.setText("KÉO");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -91,31 +108,41 @@ public class PlayRoom extends javax.swing.JPanel {
             }
         });
 
+        jButton5.setText("Thoát");
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(50, 50, 50)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 49, Short.MAX_VALUE)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGroup(layout.createSequentialGroup()
                 .addGap(28, 28, 28)
                 .addComponent(jButton1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jButton3)
                 .addGap(28, 28, 28))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(jButton2)
-                .addGap(166, 166, 166))
             .addGroup(layout.createSequentialGroup()
-                .addGap(172, 172, 172)
+                .addComponent(jButton5)
+                .addGap(97, 97, 97)
                 .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 103, Short.MAX_VALUE)
                 .addComponent(jButton4))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jButton2)
+                        .addGap(33, 33, 33))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel2)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -123,15 +150,19 @@ public class PlayRoom extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(64, 64, 64)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel1)
-                            .addComponent(jButton4))
-                        .addGap(75, 75, 75)
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jButton4)
+                            .addComponent(jButton5))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(41, 41, 41)
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(76, 76, 76)
+                                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 60, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
@@ -153,6 +184,22 @@ public class PlayRoom extends javax.swing.JPanel {
         showInviteDialog();
     }//GEN-LAST:event_jButton4ActionPerformed
 
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        // them yeu cau thoat ra de nguoi con lai cap nhat thong tin
+        frame.remove(this);
+        frame.add(mainPanel);
+        frame.revalidate();
+        frame.repaint();
+    }//GEN-LAST:event_jButton5ActionPerformed
+
+    private void setThisPlayerInfo() {
+        jTextArea1.setText(
+                client.getPlayer().getPlayerName()
+                + "\nScore: "
+                + String.valueOf(client.getPlayer().getScore())
+        );
+    }
+
     private void showInviteDialog() {
         // Tạo cửa sổ nhỏ (JDialog)
         JDialog inviteDialog = new JDialog(frame, "Chọn người chơi để mời", true);
@@ -165,8 +212,11 @@ public class PlayRoom extends javax.swing.JPanel {
         } else {
             listModel.clear(); // Xóa dữ liệu cũ nếu đã tồn tại
         }
-        
+
         for (Player player : listPlayer) {
+            if (player.equals(client.getPlayer())) {
+                continue;
+            }
             listModel.addElement(player.getPlayerName());  // Thêm tên người chơi vào danh sách
         }
 
@@ -177,11 +227,11 @@ public class PlayRoom extends javax.swing.JPanel {
         inviteDialog.add(scrollPane, BorderLayout.CENTER);
 
         // Thêm nút "Mời" vào dialog
-        JButton sendInviteButton = new JButton("Gửi lời mời");
+        JButton sendInviteButton = new JButton("Mời");
         sendInviteButton.addActionListener((var e) -> {
             String selectedPlayer = playerList.getSelectedValue();  // Lấy người chơi được chọn
             if (selectedPlayer != null) {
-                sendInviteToPlayer(selectedPlayer);
+                client.sendInvite(selectedPlayer);
                 inviteDialog.dispose();  // Đóng cửa sổ nhỏ sau khi mời
             } else {
                 JOptionPane.showMessageDialog(inviteDialog, "Vui lòng chọn một người chơi!");
@@ -201,18 +251,37 @@ public class PlayRoom extends javax.swing.JPanel {
     private void updatePlayerListModel() {
         listModel.clear();  // Xóa dữ liệu cũ
         for (Player player : listPlayer) {
+            if (player.equals(client.getPlayer())) {
+                continue;
+            }
             listModel.addElement(player.getPlayerName());  // Thêm tên người chơi mới vào danh sách
         }
     }
 
+    public void setAnotherPlayer(Player anotherPlayer) {
+        this.anotherPlayer = anotherPlayer;
+        if (this.anotherPlayer != null) {
+            jLabel2.setText("SẴN SÀNG");
+            jTextArea2.setText(
+                    this.anotherPlayer.getPlayerName()
+                    + "\nScore: "
+                    + String.valueOf(this.anotherPlayer.getID())
+            );
+        }
+    }
+
+    private final ClientSocket client;
+    private Player anotherPlayer;
     private ArrayList<Player> listPlayer;
     private final JFrame frame;
     private DefaultListModel<String> listModel;
+    private MainPanel mainPanel;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;

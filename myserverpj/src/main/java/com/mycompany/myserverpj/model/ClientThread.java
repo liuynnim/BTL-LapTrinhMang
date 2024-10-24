@@ -67,39 +67,53 @@ public class ClientThread extends Thread {
                 Message message = (Message) objIn.readObject();
                 System.out.println(message.getType() + " " + (message.getContent() != null ? message.getContent().toString() : "Content is null"));
                 // Xử lý yêu cầu đăng nhập
-                if (message.getType().equals("LOGIN")) {
-                    player = control.login(message);
-                    if (player != null) {
-                        boolean check = true;
-                        for (Player pl : server.getListPlayer()) {
-                            if (player.getID().equals(pl.getID())) {
-                                objOut.writeObject(new Message("LOGIN_FAILED", null));
-                                check = false;
-                                break;
+                switch (message.getType()) {
+                    case "LOGIN":
+                        player = control.login(message);
+                        if (player != null) {
+                            boolean check = true;
+                            for (Player pl : server.getListPlayer()) {
+                                if (player.getID().equals(pl.getID())) {
+                                    objOut.writeObject(new Message("LOGIN_FAILED", null));
+                                    check = false;
+                                    break;
+                                }
                             }
-                        }
-                        if (check) {
-                            objOut.writeObject(new Message("LOGIN_SUCCESS", player));
-                            player.setStatus(status);
-                            Thread.sleep(1000);
-                            server.updateListPlayer(player);
-                        }
-                    } else {
-                        objOut.writeObject(new Message("LOGIN_FAILED", null));
-                    }
-                    objOut.flush();
-                } else if (message.getType().equals("CHECK_DUP")) {
-                    control.checkDuplicate(message);
-                } else if (message.getType().equals("REGISTER")) {
-                    control.register(message);
-                } else if (message.getType().equals("THREE_HIGHEST")) {
-                    control.getThreeHighest();
-                } else if (message.getType().equals("GET_RANK")) {
-                    control.getRankPlayer(message);
-                } else if (message.getType().equals("DISCONNEC")) {
-                    closeConnection();
-                } else if(message.getType().equals("NEW_ROOM")) {
-                    server.getControlRoom().reqNewRoom(this);
+                            if (check) {
+                                objOut.writeObject(new Message("LOGIN_SUCCESS", player));
+                                player.setStatus(status);
+                                Thread.sleep(1000);
+                                server.updateListPlayer(player);
+                            }
+                        } else {
+                            objOut.writeObject(new Message("LOGIN_FAILED", null));
+                        }   objOut.flush();
+                        break;
+                    case "CHECK_DUP":
+                        control.checkDuplicate(message);
+                        break;
+                    case "REGISTER":
+                        control.register(message);
+                        break;
+                    case "THREE_HIGHEST":
+                        control.getThreeHighest();
+                        break;
+                    case "GET_RANK":
+                        control.getRankPlayer(message);
+                        break;
+                    case "DISCONNEC":
+                        closeConnection();
+                        break;
+                    case "NEW_ROOM":
+                        server.getControlRoom().reqNewRoom(this);
+                        break;
+                    case "SEND_INVITE":
+                        server.getControlRoom().reqSendInvite(message, player.getPlayerName());
+                        break;
+                    case "ACCEPT":
+                        
+                    default:
+                        break;
                 }
             }
         } catch (IOException | ClassNotFoundException e) {

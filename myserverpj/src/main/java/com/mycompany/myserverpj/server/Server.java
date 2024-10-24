@@ -1,13 +1,11 @@
 package com.mycompany.myserverpj.server;
 
 import com.mycompany.myserverpj.model.ClientThread;
-import com.mycompany.myserverpj.model.PlayRoom;
 import com.mycompany.myserverpj.model.control.ConnectDB;
 import com.mycompany.myserverpj.model.control.PlayRoomControl;
 import com.mycompany.shared.Player;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -30,9 +28,10 @@ public class Server {
 
     public void openServer() {
         try {
-            this.server = new ServerSocket(port);
+            server = new ServerSocket(port);
             listClient = new CopyOnWriteArrayList<>();
             listPlayer = new CopyOnWriteArrayList<>();
+            controlRoom = new PlayRoomControl(this);
             con = new ConnectDB();
             while (true) {
                 listenning();
@@ -88,6 +87,9 @@ public class Server {
     public PlayRoomControl getControlRoom() {
         return controlRoom;
     }
-    
+
+    public List<ClientThread> getListClient() {
+        return listClient;
+    }
     
 }

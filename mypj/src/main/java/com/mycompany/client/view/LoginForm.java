@@ -10,6 +10,7 @@ import java.awt.Container;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 /**
@@ -133,8 +134,15 @@ public class LoginForm extends javax.swing.JPanel {
             }
             if (client.getState() == ClientState.LOGIN_SUCCESS) {
                 Container parent = this.getParent();
+                if (parent == null) {
+                    System.out.println("ok");
+                }
+                while (parent != null && !(parent instanceof JFrame)) {
+                    parent = parent.getParent();  // Duyệt lên các thành phần cha
+                }
                 mainPanel = new MainPanel(client);
                 client.setMainPanel(mainPanel);
+                mainPanel.setFrame((JFrame) parent);
                 mainPanel.setBounds(0, 0, 400, 300);
                 mainPanel.setVisible(true);
                 parent.remove(this);

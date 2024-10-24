@@ -33,7 +33,7 @@ public class ClientSocket {
 
     // Hàng đợi để lưu trữ các thông điệp từ server
     private final BlockingQueue<Message> messageQueue;
-
+    //GETTER SETTER
     public ClientState getState() {
         return state;
     }
@@ -120,39 +120,56 @@ public class ClientSocket {
 
     // các message nhận thụ động từ server
     private void handleMessage(Message message) {
-        if ("LIST_PLAYER".equals(message.getType())) {
-            listPlayer = (ArrayList<Player>) message.getContent();
-            Collections.sort(listPlayer, (Player p1, Player p2) -> p1.getPlayerName().compareTo(p2.getPlayerName()));
-            for (Player pl : listPlayer) {
-                System.out.println(pl.getPlayerName());
-            }
-            if (mainPanel != null) {
-                mainPanel.setListPlayer();
-            }
-        } else if ("LOGIN_SUCCESS".equals(message.getType())) {
-            state = ClientState.LOGIN_SUCCESS;
-            this.player = (Player) message.getContent();
-        } else if ("LOGIN_FAILED".equals(message.getType())) {
-            state = ClientState.LOGIN_FAILED;
-        } else if ("HV_DUP".equals(message.getType())) {
-            state = ClientState.HV_DUP;
-        } else if ("NO_DUP".equals(message.getType())) {
-            state = ClientState.NO_DUP;
-        } else if ("THREE_HIGHEST".equals(message.getType())) {
-            state = ClientState.THREE_HIGHEST;
-            data = (HashMap<String, HashMap<String, String>>) message.getContent();
-        } else if ("GET_RANK".equals(message.getType())) {
-            state = ClientState.GET_RANK;
-            data = (HashMap<String, String>) message.getContent();
-        } else if ("NEW_ROOM".equals(message.getType())) {
-            state = ClientState.NEW_ROOM;
+        if (null != message.getType()) switch (message.getType()) {
+            case "LIST_PLAYER":
+                listPlayer = (ArrayList<Player>) message.getContent();
+                Collections.sort(listPlayer, (Player p1, Player p2) -> p1.getPlayerName().compareTo(p2.getPlayerName()));
+                for (Player pl : listPlayer) {
+                    System.out.println(pl.getPlayerName());
+                }   if (mainPanel != null) {
+                    mainPanel.setListPlayer();
+                }   break;
+            case "INVITE":
+                data = (HashMap<String, String>) message.getContent();
+                String inviterPlayer = (String) data.get("inviter");
+                String maPhong = (String) data.get("maPhong");
+                Player invitePlayer = null;
+                for(Player pl : listPlayer) {
+                    if(pl.getPlayerName().equals(inviterPlayer)){
+                        invitePlayer = pl;
+                        break;
+                    }
+                }
+                mainPanel.showInviteDialog(invitePlayer, maPhong);
+                break;
+            case "LOGIN_SUCCESS":
+                state = ClientState.LOGIN_SUCCESS;
+                this.player = (Player) message.getContent();
+                break;
+            case "LOGIN_FAILED":
+                state = ClientState.LOGIN_FAILED;
+                break;
+            case "HV_DUP":
+                state = ClientState.HV_DUP;
+                break;
+            case "NO_DUP":
+                state = ClientState.NO_DUP;
+                break;
+            case "THREE_HIGHEST":
+                state = ClientState.THREE_HIGHEST;
+                data = (HashMap<String, HashMap<String, String>>) message.getContent();
+                break;
+            case "GET_RANK":
+                state = ClientState.GET_RANK;
+                data = (HashMap<String, String>) message.getContent();
+                break;
+            case "NEW_ROOM":
+                state = ClientState.NEW_ROOM;
+                data = (HashMap<String, String>) message.getContent();
+                break;
+            default:
+                break;
         }
-        // Xử lý thêm các loại thông điệp khác ở đây
-//        else if ("INVITE".equals(message.getType())) {
-//            String invitePlayerName = (String) message.getContent();
-//            // Hiển thị thông báo mời cho người dùng
-//            mainPanel.showInviteDialog(invitePlayerName);
-//        }
     }
 
     // gửi thông điệp login
@@ -179,13 +196,13 @@ public class ClientSocket {
     }
 
     public void register(String username, String password, String email, String playerName) {
-        HashMap<String, String> data = new HashMap<>();
-        data.put("username", username);
-        data.put("email", email);
-        data.put("password", password);
-        data.put("playerName", playerName);
+        HashMap<String, String> dataSend = new HashMap<>();
+        dataSend.put("username", username);
+        dataSend.put("email", email);
+        dataSend.put("password", password);
+        dataSend.put("playerName", playerName);
         try {
-            objOut.writeObject(new Message("REGISTER", data));
+            objOut.writeObject(new Message("REGISTER", dataSend));
             objOut.flush();
         } catch (IOException e) {
         }
@@ -208,6 +225,20 @@ public class ClientSocket {
     public void newRoom() throws IOException {
         try {
             objOut.writeObject(new Message("NEW_ROOM", player));
+        } catch (IOException e) {
+        }
+    }
+    
+    public void sendInvite(String playerName) {
+        try {
+            objOut.writeObject(new Message("SEND_INVITE", playerName));
+        } catch (IOException e) {
+        }
+    }
+    
+    public void acceptInvite(String inviter){
+        try {
+            objOut.writeObject(new Message("ACCEPT", inviter));
         } catch (IOException e) {
         }
     }

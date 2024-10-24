@@ -3,7 +3,7 @@ com\mycompany\client\view\LoginForm.class
 com\mycompany\client\view\PlayRoom$1.class
 com\mycompany\client\view\RegisterForm$2.class
 com\mycompany\client\view\MainPanel$3.class
-com\mycompany\client\control\MainPanelControl.class
+com\mycompany\client\view\PlayRoom$4.class
 com\mycompany\client\view\LoginForm$1.class
 com\mycompany\client\view\MainPanel$1.class
 com\mycompany\client\view\MainPanel.class
@@ -12,11 +12,11 @@ com\mycompany\client\control\ClientSocket$MessageHandler.class
 com\mycompany\client\view\PlayRoom.class
 com\mycompany\client\control\ClientSocket.class
 com\mycompany\client\view\MainFrame.class
-com\mycompany\client\control\AccountControl.class
 com\mycompany\client\view\LoginForm$2.class
 com\mycompany\client\view\PlayRoom$2.class
 com\mycompany\client\model\ClientState.class
 com\mycompany\client\view\RegisterForm$1.class
+com\mycompany\client\view\MainPanel$4.class
 com\mycompany\client\view\RegisterForm.class
 com\mycompany\client\view\PlayRoom$3.class
 com\mycompany\client\control\ClientSocket$ListenFromServer.class

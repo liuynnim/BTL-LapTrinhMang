@@ -12,18 +12,32 @@ import com.mycompany.myserverpj.model.control.PlayRoomControl;
  */
 public class PlayRoom {
     private int maPhong;
-    private ArrayList<ClientThread> players;
+    private ClientThread player1;
+    private ClientThread player2;
 
-    public PlayRoom(int maPhong) {
+    public PlayRoom(int maPhong, ClientThread player1) {
         this.maPhong = maPhong;
+        this.player1 = player1;
+    }
+
+    public int getMaPhong() {
+        return maPhong;
+    }
+
+    public ClientThread getPlayer1() {
+        return player1;
+    }
+
+    public void setPlayer1(ClientThread player1) {
+        this.player1 = player1;
+    }
+
+    public ClientThread getPlayer2() {
+        return player2;
+    }
+
+    public void setPlayer2(ClientThread player2) {
+        this.player2 = player2;
     }
     
-    public boolean addPlayer(ClientThread player) {
-        if(players.size()<2)
-        {
-            players.add(player);
-            return true;
-        }
-        return false;
-    }
 }

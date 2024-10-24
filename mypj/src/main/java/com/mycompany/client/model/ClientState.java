@@ -18,5 +18,5 @@ public enum ClientState {
     REGISTER_FAILED,
     THREE_HIGHEST,
     GET_RANK,
-    NEW_ROOM
+    NEW_ROOM,
 }
