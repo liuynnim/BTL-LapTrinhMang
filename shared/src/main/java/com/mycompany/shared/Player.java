@@ -18,11 +18,10 @@ public class Player implements Serializable {
     private String password;
     private String playerName;
     private String email;
-    private int score;
+    private float score;
     private int rank;
-    private boolean status;
 
-    public Player(String ID, String username, String password, String playerName, String email, int score) {
+    public Player(String ID, String username, String password, String playerName, String email, float score) {
         this.ID = ID;
         this.username = username;
         this.password = password;
@@ -71,16 +70,17 @@ public class Player implements Serializable {
         this.email = email;
     }
 
-    public int getScore() {
+    public float getScore() {
         return score;
     }
 
-    public void setScore(int score) {
+    public void setScore(float score) {
         this.score = score;
     }
     
-    public void updateScore(int score) {
+    public float updateScore(float score) {
         this.score += score;
+        return this.score;
         // goi database
     }
 
@@ -92,13 +92,4 @@ public class Player implements Serializable {
         this.rank = rank;
     }
 
-    public boolean isStatus() {
-        return status;
-    }
-
-    public void setStatus(boolean status) {
-        this.status = status;
-    }
-    
-    
 }

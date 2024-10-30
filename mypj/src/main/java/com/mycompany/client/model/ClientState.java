@@ -19,4 +19,7 @@ public enum ClientState {
     THREE_HIGHEST,
     GET_RANK,
     NEW_ROOM,
+    LIST_PLAYER,
+    INFO_ANOTHER_PLAYER,
+    ROOM_FULL
 }

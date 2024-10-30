@@ -37,8 +37,9 @@ public class PlayerControler {
                 = (HashMap<String, String>) message.getContent();
         Player player = getPlayer(data.get("username"),
                 data.get("password"));
-        if (player != null)
+        if (player != null) {
             return player;
+        }
         return null;
     }
 
@@ -109,6 +110,7 @@ public class PlayerControler {
         } catch (IOException e) {
         }
     }
+    
 
     //các hàm DAO làm việc với DB
     //lay doi tuong player
@@ -126,7 +128,7 @@ public class PlayerControler {
                         resultSet.getString("password"),
                         resultSet.getString("playerName"),
                         resultSet.getString("email"),
-                        resultSet.getInt("score")
+                        resultSet.getFloat("score")
                 );
                 // thêm chô này
 
@@ -219,7 +221,7 @@ public class PlayerControler {
 
             if (resultSet.next()) {
                 int rank = resultSet.getInt("rank");
-                int score = resultSet.getInt("score");
+                float score = resultSet.getFloat("score");
                 data.put("rank", String.valueOf(rank));
                 data.put("score", String.valueOf(score));
             }
@@ -228,6 +230,19 @@ public class PlayerControler {
             // In ra thông tin lỗi
         }
         return null; // Trả về null nếu không tìm thấy người chơi
+    }
+
+    public boolean updateScore(String ID, float score) {
+        try (Connection connection = ConnectDB.getConnection()) {
+            String updateQuery = "UPDATE player SET score = ? WHERE ID = ?";
+            PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
+            updateStatement.setFloat(1, score);
+            updateStatement.setString(2, ID);
+            int rowsUpdated = updateStatement.executeUpdate();
+            return rowsUpdated > 0;
+        } catch (Exception e) {
+        }
+        return false;
     }
 
 }

@@ -134,11 +134,8 @@ public class LoginForm extends javax.swing.JPanel {
             }
             if (client.getState() == ClientState.LOGIN_SUCCESS) {
                 Container parent = this.getParent();
-                if (parent == null) {
-                    System.out.println("ok");
-                }
                 while (parent != null && !(parent instanceof JFrame)) {
-                    parent = parent.getParent();  // Duyệt lên các thành phần cha
+                    parent = parent.getParent(); 
                 }
                 mainPanel = new MainPanel(client);
                 client.setMainPanel(mainPanel);

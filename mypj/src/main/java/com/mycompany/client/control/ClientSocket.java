@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -25,14 +23,12 @@ public class ClientSocket {
     private final int serverPort = 8080;
 
     private Player player;
-    private boolean status;
-    private ArrayList<Player> listPlayer;
     private MainPanel mainPanel;
-    private ClientState state;
+    private volatile ClientState state;
     private HashMap<?, ?> data;
-
     // Hàng đợi để lưu trữ các thông điệp từ server
     private final BlockingQueue<Message> messageQueue;
+
     //GETTER SETTER
     public ClientState getState() {
         return state;
@@ -53,14 +49,9 @@ public class ClientSocket {
     public Player getPlayer() {
         return player;
     }
-    
-    public ArrayList<Player> getListPlayer() {
-        return listPlayer;
-    }
 
     public ClientSocket() {
         messageQueue = new LinkedBlockingQueue<>();
-        status = true;
     }
 
     public Socket requestConnection() throws IOException {
@@ -80,10 +71,6 @@ public class ClientSocket {
         return clientSocket;
     }
 
-    public void disconnection() throws IOException {
-        objOut.writeObject(new Message("DISCONNEC", null));
-    }
-
     // inner class để nghe thông tin từ server gửi về
     class ListenFromServer implements Runnable {
 
@@ -93,6 +80,7 @@ public class ClientSocket {
                 while (true) {
                     // Nhận thông điệp từ server
                     Message message = (Message) objIn.readObject();
+                    System.out.println(message.getType() + " " + (message.getContent() != null ? message.getContent().toString() : "Content is null"));
                     // Đưa thông điệp vào hàng đợi
                     messageQueue.put(message);
                 }
@@ -119,66 +107,90 @@ public class ClientSocket {
     }
 
     // các message nhận thụ động từ server
-    private void handleMessage(Message message) {
-        if (null != message.getType()) switch (message.getType()) {
-            case "LIST_PLAYER":
-                listPlayer = (ArrayList<Player>) message.getContent();
-                Collections.sort(listPlayer, (Player p1, Player p2) -> p1.getPlayerName().compareTo(p2.getPlayerName()));
-                for (Player pl : listPlayer) {
-                    System.out.println(pl.getPlayerName());
-                }   if (mainPanel != null) {
-                    mainPanel.setListPlayer();
-                }   break;
-            case "INVITE":
-                data = (HashMap<String, String>) message.getContent();
-                String inviterPlayer = (String) data.get("inviter");
-                String maPhong = (String) data.get("maPhong");
-                Player invitePlayer = null;
-                for(Player pl : listPlayer) {
-                    if(pl.getPlayerName().equals(inviterPlayer)){
-                        invitePlayer = pl;
-                        break;
+    private void handleMessage(Message message) throws InterruptedException {
+        if (null != message.getType()) {
+            switch (message.getType()) {
+                case "LOGIN_SUCCESS":
+                    state = ClientState.LOGIN_SUCCESS;
+                    player = (Player) message.getContent();
+                    break;
+                case "LOGIN_FAILED":
+                    state = ClientState.LOGIN_FAILED;
+                    break;
+                case "LIST_PLAYER":
+                    data = (HashMap<String, HashMap<String, String>>) message.getContent();
+                    state = ClientState.LIST_PLAYER;
+                    if (mainPanel != null) {
+                        mainPanel.setListPlayer((HashMap<String, HashMap<String, String>>) data);
                     }
-                }
-                mainPanel.showInviteDialog(invitePlayer, maPhong);
-                break;
-            case "LOGIN_SUCCESS":
-                state = ClientState.LOGIN_SUCCESS;
-                this.player = (Player) message.getContent();
-                break;
-            case "LOGIN_FAILED":
-                state = ClientState.LOGIN_FAILED;
-                break;
-            case "HV_DUP":
-                state = ClientState.HV_DUP;
-                break;
-            case "NO_DUP":
-                state = ClientState.NO_DUP;
-                break;
-            case "THREE_HIGHEST":
-                state = ClientState.THREE_HIGHEST;
-                data = (HashMap<String, HashMap<String, String>>) message.getContent();
-                break;
-            case "GET_RANK":
-                state = ClientState.GET_RANK;
-                data = (HashMap<String, String>) message.getContent();
-                break;
-            case "NEW_ROOM":
-                state = ClientState.NEW_ROOM;
-                data = (HashMap<String, String>) message.getContent();
-                break;
-            default:
-                break;
+                    break;
+                case "HV_DUP":
+                    state = ClientState.HV_DUP;
+                    break;
+                case "NO_DUP":
+                    state = ClientState.NO_DUP;
+                    break;
+                case "THREE_HIGHEST":
+                    state = ClientState.THREE_HIGHEST;
+                    data = (HashMap<String, HashMap<String, String>>) message.getContent();
+                    break;
+                case "GET_RANK":
+                    state = ClientState.GET_RANK;
+                    data = (HashMap<String, String>) message.getContent();
+                    break;
+                case "NEW_ROOM":
+                    state = ClientState.NEW_ROOM;
+                    data = (HashMap<String, String>) message.getContent();
+                    break;
+                case "INVITE":
+                    data = (HashMap<String, String>) message.getContent();
+                    String inviterPlayer = (String) data.get("inviter");
+                    String maPhong = (String) data.get("maPhong");
+                    mainPanel.showInviteDialog(inviterPlayer, maPhong);
+                    break;
+                case "ACCEPTER":
+                    mainPanel.setPlayRoomAnotherPlayer((Player) message.getContent());
+                    mainPanel.showPlayRoom();
+                    break;
+                case "INFO_ANOTHER_PLAYER":
+                    state = ClientState.INFO_ANOTHER_PLAYER;
+                    mainPanel.setPlayRoomAnotherPlayer((Player) message.getContent());
+                    mainPanel.showPlayRoom();
+                    break;
+                case "ROOM_FULL":
+                    state = ClientState.ROOM_FULL;
+                    break;
+                case "READY":
+                    mainPanel.getPlayRoom().hidePlayButtonAndChangeLabel();
+                    break;
+                case "PLAY":
+                    mainPanel.getPlayRoom().hidePlayButtonAndChangeLabel();
+                    break;
+                case "COUNTDOWN":
+                    mainPanel.getPlayRoom().chanceTime(String.valueOf(message.getContent()));
+                    break;
+                case "TIME_UP":
+                    try {
+                        objOut.writeObject(new Message("CHOICE", mainPanel.getPlayRoom().getChoice()));
+                    } catch (IOException e) {
+                    }
+                    break;
+                case "RESULT":
+                    processingResults((String) message.getContent());
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
     // gửi thông điệp login
     public void Login(String username, String password) throws IOException, ClassNotFoundException {
-        HashMap<String, String> data = new HashMap<>();
-        data.put("username", username);
-        data.put("password", password);
+        HashMap<String, String> dataSend = new HashMap<>();
+        dataSend.put("username", username);
+        dataSend.put("password", password);
         try {
-            objOut.writeObject(new Message("LOGIN", data));
+            objOut.writeObject(new Message("LOGIN", dataSend));
             objOut.flush();
         } catch (IOException e) {
         }
@@ -186,10 +198,10 @@ public class ClientSocket {
 
     // kiểm tra trùng lặp username, email, playerName
     public void checkDuplicates(String type, String content) {
-        HashMap<String, String> data = new HashMap<>();
-        data.put((type), content);
+        HashMap<String, String> dataSend = new HashMap<>();
+        dataSend.put((type), content);
         try {
-            objOut.writeObject(new Message("CHECK_DUP", data));
+            objOut.writeObject(new Message("CHECK_DUP", dataSend));
             objOut.flush();
         } catch (IOException e) {
         }
@@ -211,6 +223,15 @@ public class ClientSocket {
     public void getThreeHighest() {
         try {
             objOut.writeObject(new Message("THREE_HIGHEST", null));
+            objOut.flush();
+        } catch (IOException e) {
+        }
+    }
+
+    public void getListPlayers() {
+        try {
+            objOut.writeObject(new Message("LIST_PLAYER", null));
+            objOut.flush();
         } catch (IOException e) {
         }
     }
@@ -218,6 +239,7 @@ public class ClientSocket {
     public void getRank(String ID) {
         try {
             objOut.writeObject(new Message("GET_RANK", ID));
+            objOut.flush();
         } catch (IOException e) {
         }
     }
@@ -225,20 +247,90 @@ public class ClientSocket {
     public void newRoom() throws IOException {
         try {
             objOut.writeObject(new Message("NEW_ROOM", player));
+            objOut.flush();
         } catch (IOException e) {
         }
     }
-    
+
     public void sendInvite(String playerName) {
         try {
             objOut.writeObject(new Message("SEND_INVITE", playerName));
+            objOut.flush();
         } catch (IOException e) {
         }
     }
-    
-    public void acceptInvite(String inviter){
+
+    public void acceptInvite(String inviter) {
         try {
             objOut.writeObject(new Message("ACCEPT", inviter));
+            objOut.flush();
+        } catch (IOException e) {
+        }
+    }
+
+    public void disconnection() throws IOException {
+        objOut.writeObject(new Message("DISCONNEC", null));
+        objOut.flush();
+    }
+
+    public void ready(String maPhong) {
+        try {
+            objOut.writeObject(new Message("READY", maPhong));
+            objOut.flush();
+        } catch (IOException e) {
+        }
+    }
+
+    public void noready(String maPhong) {
+        try {
+            objOut.writeObject(new Message("NO_READY", maPhong));
+            objOut.flush();
+        } catch (IOException e) {
+        }
+    }
+
+    private void processingResults(String result) {
+        System.out.println(result);
+        switch (result) {
+            case "HOA":
+                // cộng điểm cho mình
+                player.updateScore(0.5f);
+                // cập nhật hiển thị score của mình trong PlayRoom
+                mainPanel.getPlayRoom().setThisPlayerInfo();
+                // cập nhật hiển thị score của người chơi khác trong PlayRoom
+                mainPanel.getPlayRoom().updateAnotherPlayerScore(0.5f);
+                //thay đổi thông báo tháng thua trong room
+                mainPanel.getPlayRoom().chanceTime("HÒA");
+                // reset lại phòng để bắt dầu vòng chơi mới
+                mainPanel.getPlayRoom().resetRoom();
+                break;
+            case "THANG":
+                // cộng điểm cho mình
+                player.updateScore(1f);
+                //thay đổi thông báo tháng thua trong room
+                mainPanel.getPlayRoom().chanceTime("THẮNG");
+                // cập nhật hiển thị score của mình trong PlayRoom
+                mainPanel.getPlayRoom().setThisPlayerInfo();
+                // reset lại phòng để bắt dầu vòng chơi mới
+                mainPanel.getPlayRoom().resetRoom();
+                break;
+            case "THUA":
+                // cập nhật hiển thị score của người chơi khác trong PlayRoom
+                mainPanel.getPlayRoom().updateAnotherPlayerScore(1f);
+                //thay đổi thông báo tháng thua trong room
+                mainPanel.getPlayRoom().chanceTime("THUA");
+                // reset lại phòng để bắt dầu vòng chơi mới
+                mainPanel.getPlayRoom().resetRoom();
+                break;
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    //thông báo rời phòng
+    public void outRoom() {
+        try {
+            objOut.writeObject(new Message("OUT_ROOM", null));
         } catch (IOException e) {
         }
     }

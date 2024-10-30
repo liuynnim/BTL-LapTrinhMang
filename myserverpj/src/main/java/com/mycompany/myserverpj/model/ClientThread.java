@@ -13,9 +13,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,17 +32,22 @@ public class ClientThread extends Thread {
     private Player player;
     private boolean status;
 
+    // tạo biến lưu lựa chọn ở đây cho đơn giản
+    private int choice;
+
     public ClientThread(Socket clientSocket, Server server) {
         this.clientSocket = clientSocket;
         this.server = server;
         this.status = true;
+        // khởi tạo trước để làm FLAG 
+        choice = -1;
         start();
     }
 
     public ObjectOutputStream getObjOut() {
         return objOut;
     }
-    
+
     public boolean isStatus() {
         return status;
     }
@@ -54,6 +58,18 @@ public class ClientThread extends Thread {
 
     public Player getPlayer() {
         return player;
+    }
+
+    public int getChoice() {
+        return choice;
+    }
+
+    public void setChoice(int choice) {
+        this.choice = choice;
+    }
+
+    public PlayerControler getControl() {
+        return control;
     }
 
     @Override
@@ -71,23 +87,17 @@ public class ClientThread extends Thread {
                     case "LOGIN":
                         player = control.login(message);
                         if (player != null) {
-                            boolean check = true;
-                            for (Player pl : server.getListPlayer()) {
-                                if (player.getID().equals(pl.getID())) {
-                                    objOut.writeObject(new Message("LOGIN_FAILED", null));
-                                    check = false;
-                                    break;
-                                }
-                            }
-                            if (check) {
+                            if (server.checkCLientOn(player)) {
+                                objOut.writeObject(new Message("LOGIN_FAILED", null));
+                            } else {
+                                status = true;
                                 objOut.writeObject(new Message("LOGIN_SUCCESS", player));
-                                player.setStatus(status);
-                                Thread.sleep(1000);
-                                server.updateListPlayer(player);
+                                server.updateClientList(this);
                             }
                         } else {
                             objOut.writeObject(new Message("LOGIN_FAILED", null));
-                        }   objOut.flush();
+                        }
+                        objOut.flush();
                         break;
                     case "CHECK_DUP":
                         control.checkDuplicate(message);
@@ -111,7 +121,22 @@ public class ClientThread extends Thread {
                         server.getControlRoom().reqSendInvite(message, player.getPlayerName());
                         break;
                     case "ACCEPT":
-                        
+                        server.getControlRoom().respAcceptInvite(message, this);
+                        break;
+                    case "LIST_PLAYER":
+                        server.updateAllPlayers();
+                        break;
+                    case "CHOICE":
+                        choice = (int) message.getContent();
+                        break;
+                    case "READY":
+                        server.getControlRoom().setReadyStatus(this);
+                        break;
+                    case "PLAY":
+                        break;
+                    case "OUT_ROOM":
+                        server.getControlRoom().OutRoom(this);
+                        server.updateAllPlayers();
                     default:
                         break;
                 }
@@ -120,15 +145,13 @@ public class ClientThread extends Thread {
             System.out.println(Arrays.toString(e.getStackTrace()));
         } catch (SQLException ex) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     // cập nhật danh sách người chơi
-    public void updatePlayerList(List<Player> listPlayer) {
+    public void updatePlayerList(HashMap<String, HashMap<String, String>> data) {
         try {
-            objOut.writeObject(new Message("LIST_PLAYER", new ArrayList<>(listPlayer)));
+            objOut.writeObject(new Message("LIST_PLAYER", data));
             objOut.flush();
         } catch (IOException e) {
         }
@@ -138,10 +161,11 @@ public class ClientThread extends Thread {
     private void closeConnection() {
         try {
             try (clientSocket) {
-                server.removePlayer(player, this);
+                server.removeClient(this);
             }
             objOut.close();
             objIn.close();
+            clientSocket.close();
         } catch (IOException e) {
         }
     }

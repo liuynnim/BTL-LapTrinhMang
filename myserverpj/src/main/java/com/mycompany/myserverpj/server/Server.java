@@ -6,6 +6,7 @@ import com.mycompany.myserverpj.model.control.PlayRoomControl;
 import com.mycompany.shared.Player;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -22,7 +23,6 @@ public class Server {
     private ServerSocket server = null;
     private ConnectDB con = null;
     private List<ClientThread> listClient;
-    private List<Player> listPlayer;
     private PlayRoomControl controlRoom;
     final private int port = 8080;
 
@@ -30,7 +30,6 @@ public class Server {
         try {
             server = new ServerSocket(port);
             listClient = new CopyOnWriteArrayList<>();
-            listPlayer = new CopyOnWriteArrayList<>();
             controlRoom = new PlayRoomControl(this);
             con = new ConnectDB();
             while (true) {
@@ -44,32 +43,30 @@ public class Server {
         try {
             ClientThread client = new ClientThread(server.accept(), this);
             System.out.println("1 nguoi da dang nhap");
-            listClient.add(client);
         } catch (IOException e) {
-        }
-    }
-
-    // quan lý danh sach Thread và danh sách người chơi
-    public void removePlayer(Player player, ClientThread client) {
-        listPlayer.remove(player);
-        listClient.remove(client);
-        updateAllPlayers();
-    }
-
-    public void updateListPlayer(Player player) {
-        if (player != null) {
-            listPlayer.add(player);
-            updateAllPlayers();
         }
     }
 
     public void updateAllPlayers() {
         // Gọi hàm cập nhật danh sách người chơi cho tất cả các client
-        for(Player pl : listPlayer)
-            System.out.println(pl.getPlayerName());
+        HashMap<String, HashMap<String, String>> data = new HashMap<>();
+
+        int i = 1;
         for (ClientThread client : listClient) {
-            client.updatePlayerList(listPlayer);
+            HashMap<String, String> dataThisClient = new HashMap<>();
+            dataThisClient.put("playerName", client.getPlayer().getPlayerName());
+            dataThisClient.put("status", (client.isStatus() ? "true" : "false"));
+            data.put(String.valueOf(i), dataThisClient);
+            i++;
         }
+        
+        for (ClientThread client : listClient) {
+            client.updatePlayerList(data);
+        }
+    }
+
+    public void updateClientList(ClientThread client) {
+        listClient.add(client);
     }
 
     public void removeClient(ClientThread client) {
@@ -79,11 +76,6 @@ public class Server {
     }
 
     // quan lý phòng chơi
-    
-    public List<Player> getListPlayer() {
-        return listPlayer;
-    }
-
     public PlayRoomControl getControlRoom() {
         return controlRoom;
     }
@@ -91,5 +83,14 @@ public class Server {
     public List<ClientThread> getListClient() {
         return listClient;
     }
-    
+
+    public boolean checkCLientOn(Player player) {
+        for (ClientThread client : listClient) {
+            if (client.getPlayer().equals(player)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

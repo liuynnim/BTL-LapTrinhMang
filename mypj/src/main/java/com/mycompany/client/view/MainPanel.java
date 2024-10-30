@@ -10,9 +10,11 @@ import com.mycompany.shared.Player;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -41,6 +43,7 @@ public class MainPanel extends javax.swing.JPanel {
     public MainPanel(ClientSocket client) {
         initComponents();
         this.client = client;
+        listPlayer = new ArrayList<>();
         TakeInfo();
     }
 
@@ -149,18 +152,20 @@ public class MainPanel extends javax.swing.JPanel {
         } catch (IOException ex) {
             Logger.getLogger(MainPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(MainPanel.class.getName()).log(Level.SEVERE, null, ex);
+        while (client.getState() != ClientState.NEW_ROOM) {
+            try {
+                Thread.sleep(50); // Giảm thời gian chờ
+            } catch (InterruptedException e) {
+            }
         }
         playRoom = new PlayRoom(
                 (JFrame) this.frame,
-                client.getListPlayer(),
+                listPlayer,
                 client,
                 this,
                 (String) client.getData().get("maPhong")
         );
+        playRoom.setListPlayer(listPlayer);
         playRoom.setBounds(0, 0, 400, 300);
         playRoom.setVisible(true);
         this.frame.remove(this);
@@ -230,37 +235,30 @@ public class MainPanel extends javax.swing.JPanel {
         );
         // hiển thị thông tin của người chơi
         setInfoPlayer();
-        setListPlayer();
+        getListPlayer();
     }
 
-    public void showInviteDialog(Player Inviter, String maPhong) {
+    public void showInviteDialog(String inviter, String maPhong) {
         // Tạo cửa sổ nhỏ (JDialog)
         JDialog inviteDialog = new JDialog(frame, "Mời chơi", true);
         inviteDialog.setSize(200, 100);
         inviteDialog.setLocationRelativeTo(this);
 
         JTextArea infoInviter = new JTextArea();
-        infoInviter.setText("Người chơi " + Inviter.getPlayerName() + " mời bạn chơi!");
+        infoInviter.setText("Người chơi " + inviter + " mời bạn chơi!");
         inviteDialog.add(infoInviter, BorderLayout.CENTER);
         // Thêm nút "Mời" vào dialog
         JButton acceptBt = new JButton("Chấp Nhận");
         acceptBt.addActionListener((ActionEvent e) -> {
-            client.acceptInvite(Inviter.getPlayerName());
-            // update status 
-            inviteDialog.dispose();
+            client.acceptInvite(inviter);
             playRoom = new PlayRoom(
-                    (JFrame) MainPanel.this.frame, 
-                    client.getListPlayer(), 
-                    client, 
-                    MainPanel.this, 
+                    (JFrame) this.frame,
+                    listPlayer,
+                    client,
+                    this,
                     maPhong);
-            playRoom.setAnotherPlayer(Inviter);
-            playRoom.setBounds(0, 0, 400, 300);
-            playRoom.setVisible(true);
-            frame.remove(MainPanel.this);
-            frame.add(playRoom);
-            frame.revalidate();
-            frame.repaint();
+
+            inviteDialog.dispose();
         });
 
         inviteDialog.add(acceptBt, BorderLayout.SOUTH);
@@ -290,21 +288,46 @@ public class MainPanel extends javax.swing.JPanel {
                 + "\nRank: " + rank);
     }
 
-    // hiển thị danh sách người chơi 
-    public void setListPlayer() {
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        Map<String, Boolean> playerStatusMap = new HashMap<>(); // Lưu tên người chơi và trạng thái
-
-        if (client.getListPlayer() != null) {
-            if (playRoom != null) {
-                playRoom.setListPlayer(client.getListPlayer());
+    private void getListPlayer() {
+        client.getListPlayers();
+        while (client.getState() != ClientState.LIST_PLAYER) {
+            try {
+                Thread.sleep(50); // Giảm thời gian chờ
+            } catch (InterruptedException e) {
             }
-            for (Player pl : client.getListPlayer()) {
-                if (pl.getID().equals(client.getPlayer().getID())) {
+        }
+        setListPlayer((HashMap<String, HashMap<String, String>>) client.getData());
+    }
+
+    // Hiển thị danh sách người chơi
+    public void setListPlayer(HashMap<String, HashMap<String, String>> data) {
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        HashMap<String, Boolean> playerStatusMap = new HashMap<>(); // Lưu tên người chơi và trạng thái
+
+        // Giả sử client.getListPlayerData() trả về kiểu HashMap<String, HashMap<String, String>>
+        HashMap<String, HashMap<String, String>> playerDataMap = data;
+
+        if (playerDataMap != null) {
+            for (Map.Entry<String, HashMap<String, String>> entry : playerDataMap.entrySet()) {
+                HashMap<String, String> playerInfo = entry.getValue();
+
+                String playerName = playerInfo.get("playerName");
+                String statusStr = playerInfo.get("status");
+                boolean status = Boolean.parseBoolean(statusStr);
+
+                // Bỏ qua nếu là chính người chơi hiện tại
+                if (playerName.equals(client.getPlayer().getPlayerName())) {
                     continue;
                 }
-                listModel.addElement(pl.getPlayerName()); // Thêm tên vào listModel
-                playerStatusMap.put(pl.getPlayerName(), pl.isStatus()); // Thêm trạng thái vào map
+                listPlayer.clear();
+                if (status) {
+                    listPlayer.add(playerName);
+                }
+                listModel.addElement(playerName); // Thêm tên vào listModel
+                playerStatusMap.put(playerName, status); // Thêm trạng thái vào map
+            }
+            if (playRoom != null) {
+                playRoom.setListPlayer(listPlayer);
             }
         }
 
@@ -333,16 +356,18 @@ public class MainPanel extends javax.swing.JPanel {
 
             // Kiểm tra nếu value là String
             if (value instanceof String playerName) {
-
                 // Lấy trạng thái từ Map bằng playerName
                 Boolean status = playerStatusMap.get(playerName);
+
+                // Đặt tên người chơi cho label
+                label.setText(playerName);
 
                 // Điều chỉnh màu nền dựa trên trạng thái
                 if (!isSelected && status != null) {
                     if (status) {
-                        label.setBackground(Color.GREEN);  // Nếu true thì hiện màu xanh
+                        label.setBackground(Color.GREEN);
                     } else {
-                        label.setBackground(Color.RED);    // Nếu false thì hiện màu đỏ
+                        label.setBackground(Color.RED);
                     }
                 }
             }
@@ -355,9 +380,28 @@ public class MainPanel extends javax.swing.JPanel {
         this.frame = frame;
     }
 
+    public void setPlayRoomAnotherPlayer(Player anotherPlayer) {
+        playRoom.setAnotherPlayer(anotherPlayer);
+    }
+
+    public void showPlayRoom() {
+        playRoom.setBounds(0, 0, 400, 300);
+        playRoom.setVisible(true);
+        this.frame.remove(this);
+        this.frame.add(playRoom);
+        this.frame.revalidate();
+        this.frame.repaint();
+    }
+
+    //trả về playRoom để xử lý bên client ngắn hơn
+    public PlayRoom getPlayRoom() {
+        return playRoom;
+    }
+
     private JFrame frame;
     private final ClientSocket client;
     private PlayRoom playRoom;
+    private ArrayList<String> listPlayer;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
