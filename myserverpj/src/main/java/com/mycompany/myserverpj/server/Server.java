@@ -67,6 +67,7 @@ public class Server {
 
     public void updateClientList(ClientThread client) {
         listClient.add(client);
+        System.out.println(listClient.size());
     }
 
     public void removeClient(ClientThread client) {
@@ -83,10 +84,11 @@ public class Server {
     public List<ClientThread> getListClient() {
         return listClient;
     }
-
+    // kiểm tra tài khoản đăng nhập chưa
+    // duyệt danh sách client kiểm tra trùng ID
     public boolean checkCLientOn(Player player) {
         for (ClientThread client : listClient) {
-            if (client.getPlayer().equals(player)) {
+            if (client.getPlayer().getID().equals(player.getID())) {
                 return true;
             }
         }

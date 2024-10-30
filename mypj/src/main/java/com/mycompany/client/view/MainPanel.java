@@ -306,7 +306,7 @@ public class MainPanel extends javax.swing.JPanel {
 
         // Giả sử client.getListPlayerData() trả về kiểu HashMap<String, HashMap<String, String>>
         HashMap<String, HashMap<String, String>> playerDataMap = data;
-
+        listPlayer.clear();
         if (playerDataMap != null) {
             for (Map.Entry<String, HashMap<String, String>> entry : playerDataMap.entrySet()) {
                 HashMap<String, String> playerInfo = entry.getValue();
@@ -319,7 +319,6 @@ public class MainPanel extends javax.swing.JPanel {
                 if (playerName.equals(client.getPlayer().getPlayerName())) {
                     continue;
                 }
-                listPlayer.clear();
                 if (status) {
                     listPlayer.add(playerName);
                 }

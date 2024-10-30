@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  *
@@ -22,12 +24,14 @@ public class PlayRoomControl {
 
     private final Server server;
     private final ArrayList<PlayRoom> rooms;
+    private ExecutorService executorService;
 
     // chấp nhận yêu cầu khởi tạo phòng  
     // xử lý chấp nhận lời mời
     public PlayRoomControl(Server server) {
         this.server = server;
         rooms = new ArrayList<>();
+        executorService = Executors.newFixedThreadPool(10);
     }
 
     //
@@ -116,8 +120,8 @@ public class PlayRoomControl {
                     room.getPlayer1().getObjOut().flush();
                     room.getPlayer2().getObjOut().writeObject(new Message("PLAY", null));
                     room.getPlayer2().getObjOut().flush();
-                    Playing playing = new Playing(room, 10);
-                    playing.start();
+                    executorService.submit(new Playing(room, 10));
+                    break;
                 }
             } else if (room.getPlayer2().equals(client)) {
                 room.setStatusPlayer2(true);
@@ -126,11 +130,10 @@ public class PlayRoomControl {
                     room.getPlayer1().getObjOut().flush();
                     room.getPlayer2().getObjOut().writeObject(new Message("PLAY", null));
                     room.getPlayer2().getObjOut().flush();
-                    Playing playing = new Playing(room, 10);
-                    playing.start();
+                    executorService.submit(new Playing(room, 10));
+                    break;
                 }
             }
-            break;
         }
     }
 
@@ -142,10 +145,12 @@ public class PlayRoomControl {
             if (room.getPlayer1().equals(client)) {
                 // cả 2 người chơi chuyển thành trạn thái đang rảnh
                 client.setStatus(true);
-                room.getPlayer2().setStatus(true);
+                if (room.getPlayer2() != null) {
+                    room.getPlayer2().setStatus(true);
+                }
                 /* Chuyển người chơi 2 thành người chơi 1 vì 1 số logic chỉ kiểm
                 tra người chơi 1 có tồn tại hay không
-                */
+                 */
                 room.setPlayer1(room.getPlayer2());
                 room.setPlayer2(null);
                 if (room.getPlayer1() == null) {
@@ -272,4 +277,8 @@ public class PlayRoomControl {
             return "2";
         }
     }
+    
+//    public void shutdown() {
+//        executorService.shutdown();
+//    }
 }

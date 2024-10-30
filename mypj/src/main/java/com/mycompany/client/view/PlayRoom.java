@@ -217,14 +217,16 @@ public final class PlayRoom extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        if(!statusReady) {
-            client.ready(maPhong);
-            statusReady = true;
-            jButton6.setBackground(new Color(105, 105, 105));
-        } else {
-            client.noready(maPhong);
-            statusReady = false;
-            jButton6.setBackground(Color.WHITE);
+        if (anotherPlayer != null) {
+            if (!statusReady) {
+                client.ready(maPhong);
+                statusReady = true;
+                jButton6.setBackground(new Color(105, 105, 105));
+            } else {
+                client.noready(maPhong);
+                statusReady = false;
+                jButton6.setBackground(Color.WHITE);
+            }
         }
     }//GEN-LAST:event_jButton6ActionPerformed
 
@@ -240,8 +242,7 @@ public final class PlayRoom extends javax.swing.JPanel {
                 + String.valueOf(client.getPlayer().getScore())
         );
     }
-    
-    
+
     // hiển thị bảng danh sách người chơi và mời chơi
     private void showInviteDialog() {
         // Tạo cửa sổ nhỏ (JDialog)
@@ -281,7 +282,9 @@ public final class PlayRoom extends javax.swing.JPanel {
     }
 
     private void updatePlayerListModel() {
-        if(listModel != null) listModel.clear();  // Xóa dữ liệu cũ
+        if (listModel != null) {
+            listModel.clear();  // Xóa dữ liệu cũ
+        }
         for (String player : listPlayer) {
             listModel.addElement(player);  // Thêm tên người chơi mới vào danh sách
         }
@@ -300,48 +303,46 @@ public final class PlayRoom extends javax.swing.JPanel {
             );
         }
     }
-    
+
     // Các thao tác chơi game
-    
     // ẩn nút chơi khi bắt đầu chơi và thay đổi Label thành "Bắt Đầu"
     public void hidePlayButtonAndChangeLabel() {
         jButton6.setVisible(false);
         jLabel2.setText("Bắt Đầu");
     }
-    
+
     //Thay đổi hiển thị bộ đếm {
     public void chanceTime(String time) {
         jLabel2.setText(time);
     }
-    
+
     //ghi nhân lựa chọn
-    
     //thay đổi màu lựa chọn
     //tham số là nút vừa chọn
     //thực hiện đổi màu các nút còn lại khac mau voi nut dang chon
-    
     private void changeColorButton(JButton button) {
         jButton1.setBackground(Color.WHITE);
         jButton2.setBackground(Color.WHITE);
         jButton3.setBackground(Color.WHITE);
         button.setBackground(new Color(105, 105, 105));
     }
-    
+
     // lấy ra lựa chọn
     /*
     1 - kéo
     2 - búa
     3 - bao
-    */
-    
+     */
     public int getChoice() {
         return choice;
     }
+
     //update sau khi nhận kết quả
     public void updateAnotherPlayerScore(float score) {
         anotherPlayer.updateScore(score);
         setAnotherPlayer(anotherPlayer);
     }
+
     // reset lại phòng
     public void resetRoom() {
         // chuyển trạng thái sẵn sàng về false
@@ -354,7 +355,7 @@ public final class PlayRoom extends javax.swing.JPanel {
         jButton2.setBackground(Color.WHITE);
         jButton3.setBackground(Color.WHITE);
     }
-    
+
     private JList<String> playerList;
     private boolean statusReady;
     private String maPhong;
