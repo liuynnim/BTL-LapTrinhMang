@@ -126,6 +126,9 @@ public class ClientThread extends Thread {
                     case "LIST_PLAYER":
                         server.updateAllPlayers();
                         break;
+                    case "LIST_ROOM":
+                        server.getControlRoom().updateListRoom();
+                        break;
                     case "CHOICE":
                         choice = (int) message.getContent();
                         break;
@@ -137,6 +140,13 @@ public class ClientThread extends Thread {
                     case "OUT_ROOM":
                         server.getControlRoom().OutRoom(this);
                         server.updateAllPlayers();
+                        break;
+                    case "ENTER_ROOM":
+                        server.getControlRoom().reqEnterRoom(message, this);
+                        break;
+                    case "RANK_LIST":
+                        control.getRankList();
+                        break;
                     default:
                         break;
                 }

@@ -8,6 +8,7 @@ import com.mycompany.client.control.ClientSocket;
 import com.mycompany.shared.Player;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -17,6 +18,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 
 /**
  *
@@ -88,6 +90,8 @@ public final class PlayRoom extends javax.swing.JPanel {
         jLabel1.setText("Phòng 001");
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel2.setHorizontalAlignment(SwingConstants.CENTER);
+        jLabel2.setVerticalAlignment(SwingConstants.CENTER);
         jLabel2.setText("CHUẨN BỊ");
 
         jButton1.setText("KÉO");
@@ -149,27 +153,24 @@ public final class PlayRoom extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 103, Short.MAX_VALUE)
                 .addComponent(jButton4))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel2)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jButton6)
                             .addComponent(jButton2))
-                        .addGap(33, 33, 33)))
+                        .addGap(33, 33, 33))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(64, 64, 64)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel1)
@@ -179,9 +180,13 @@ public final class PlayRoom extends javax.swing.JPanel {
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(41, 41, 41)
                                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(76, 76, 76)
-                                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel2)
+                                .addGap(41, 41, 41))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(64, 64, 64)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jButton6)
                 .addGap(33, 33, 33)
@@ -189,7 +194,7 @@ public final class PlayRoom extends javax.swing.JPanel {
                     .addComponent(jButton1)
                     .addComponent(jButton2)
                     .addComponent(jButton3))
-                .addGap(46, 46, 46))
+                .addGap(44, 44, 44))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -210,11 +215,15 @@ public final class PlayRoom extends javax.swing.JPanel {
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         // them yeu cau thoat ra de nguoi con lai cap nhat thong tin
         client.outRoom();
+        outRoom();
+    }//GEN-LAST:event_jButton5ActionPerformed
+
+    public void outRoom() {
         frame.remove(this);
         frame.add(mainPanel);
         frame.revalidate();
         frame.repaint();
-    }//GEN-LAST:event_jButton5ActionPerformed
+    }
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         if (anotherPlayer != null) {
@@ -247,7 +256,7 @@ public final class PlayRoom extends javax.swing.JPanel {
     private void showInviteDialog() {
         // Tạo cửa sổ nhỏ (JDialog)
         JDialog inviteDialog = new JDialog(frame, "Chọn người chơi để mời", true);
-        inviteDialog.setSize(300, 400);
+        inviteDialog.setSize(300, 300);
         inviteDialog.setLocationRelativeTo(this);
 
         playerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Cho phép chọn một người chơi
@@ -275,9 +284,7 @@ public final class PlayRoom extends javax.swing.JPanel {
 
     public void setListPlayer(ArrayList<String> listPlayer) {
         this.listPlayer.clear();
-        System.out.println(this.listPlayer.size());
         this.listPlayer.addAll(listPlayer);
-        System.out.println(this.listPlayer.size());
         updatePlayerListModel();
     }
 
@@ -301,6 +308,8 @@ public final class PlayRoom extends javax.swing.JPanel {
                     + "\nScore: "
                     + String.valueOf(this.anotherPlayer.getScore())
             );
+            jLabel2.revalidate();
+            jLabel2.repaint();
         }
     }
 
@@ -309,11 +318,15 @@ public final class PlayRoom extends javax.swing.JPanel {
     public void hidePlayButtonAndChangeLabel() {
         jButton6.setVisible(false);
         jLabel2.setText("Bắt Đầu");
+        jLabel2.revalidate();
+        jLabel2.repaint();
     }
 
     //Thay đổi hiển thị bộ đếm {
     public void chanceTime(String time) {
         jLabel2.setText(time);
+        jLabel2.revalidate();
+        jLabel2.repaint();
     }
 
     //ghi nhân lựa chọn

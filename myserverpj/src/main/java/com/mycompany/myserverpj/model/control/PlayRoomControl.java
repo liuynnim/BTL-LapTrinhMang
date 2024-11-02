@@ -34,6 +34,23 @@ public class PlayRoomControl {
         executorService = Executors.newFixedThreadPool(10);
     }
 
+    //gui danh sach phong cho client
+    public void updateListRoom() throws IOException {
+        HashMap<String, String> data = new HashMap<>();
+        Iterator<PlayRoom> iterator = rooms.iterator();
+        while (iterator.hasNext()) {
+            PlayRoom r = iterator.next();
+            String IDRomm = String.valueOf(r.getMaPhong());
+            String numberOfPlayer = (r.getPlayer2() != null) ? "2" : "1";
+            data.put(IDRomm, numberOfPlayer);
+        }
+
+        for (ClientThread cl : server.getListClient()) {
+            cl.getObjOut().writeObject(new Message("LIST_ROOM", data));
+            cl.getObjOut().flush();
+        }
+    }
+
     //
     public void reqNewRoom(ClientThread player) throws IOException {
         // player yeu cau la dang ranh
@@ -47,10 +64,17 @@ public class PlayRoomControl {
             }
         }
         PlayRoom room = new PlayRoom(maPhong, player);
-        HashMap<String, String> data = new HashMap<>();
-        data.put("maPhong", String.valueOf(room.getMaPhong()));
         rooms.add(room);
-        player.getObjOut().writeObject(new Message("NEW_ROOM", data));
+        createRoom(maPhong, player);
+        //gui thong tin
+        updateListRoom();
+    }
+    
+    private void createRoom(int maPhong, ClientThread client) {
+        try {
+            client.getObjOut().writeObject(new Message("NEW_ROOM", maPhong));
+        } catch (Exception e) {
+        }
     }
 
     public void reqSendInvite(Message message, String playerInvite) throws IOException {
@@ -94,18 +118,51 @@ public class PlayRoomControl {
                     room.getPlayer1().setStatus(false);
                     client.setStatus(false);
                     // gửi thông tin người chơi 2 về cho người chơi 1 để hiển thị
-                    room.getPlayer1().getObjOut().writeObject(new Message("ACCEPTER", client.getPlayer()));
+                    room.getPlayer1().getObjOut().writeObject(new Message("INFO_ANOTHER_PLAYER", client.getPlayer()));
                     room.getPlayer1().getObjOut().flush();
                     // gửi thông tin về cho player 2 để vào phòng
+                    createRoom(room.getMaPhong(), client);
                     client.getObjOut().writeObject(
-                            new Message("INFO_ANOTHER_PLAYER", room.getPlayer1().getPlayer()));
+                            new Message("INFO_ANOTHER_PLAYER", 
+                                    room.getPlayer1().getPlayer()
+                            ));
                     client.getObjOut().flush();
+                    server.updateAllPlayers();
+                    updateListRoom();
                 } else {
                     client.getObjOut().writeObject(
                             new Message("ROOM_FULL", null));
                     client.getObjOut().flush();
                 }
-                server.updateAllPlayers();
+                break;
+            }
+        }
+    }
+    
+    public void reqEnterRoom(Message message, ClientThread client) throws IOException {
+        int IDRoom = (int) message.getContent();
+
+        for (PlayRoom room : rooms) {
+            if (room.getMaPhong() == IDRoom) {
+                if (room.getPlayer2() == null) {
+                    room.setPlayer2(client);
+                    room.getPlayer1().setStatus(false);
+                    client.setStatus(false);
+                    // gửi thông tin người chơi 2 về cho người chơi 1 để hiển thị
+                    room.getPlayer1().getObjOut().writeObject(new Message("INFO_ANOTHER_PLAYER", client.getPlayer()));
+                    room.getPlayer1().getObjOut().flush();
+                    // gửi thông tin về cho player 2 để vào phòng
+                    createRoom(IDRoom, client);
+                    client.getObjOut().writeObject(
+                            new Message("INFO_ANOTHER_PLAYER", room.getPlayer1().getPlayer()));
+                    client.getObjOut().flush();
+                    server.updateAllPlayers();
+                    updateListRoom();
+                } else {
+                    client.getObjOut().writeObject(
+                            new Message("ROOM_FULL", null));
+                    client.getObjOut().flush();
+                }
                 break;
             }
         }
@@ -138,7 +195,7 @@ public class PlayRoomControl {
     }
 
     //xử lý yêu cầu rời phòng chơi
-    public void OutRoom(ClientThread client) {
+    public void OutRoom(ClientThread client) throws IOException {
         Iterator<PlayRoom> iterator = rooms.iterator();
         while (iterator.hasNext()) {
             PlayRoom room = iterator.next();
@@ -156,14 +213,14 @@ public class PlayRoomControl {
                 if (room.getPlayer1() == null) {
                     iterator.remove(); // Xóa phòng an toàn khỏi danh sách
                 }
-                return;
             } else if (room.getPlayer2() != null && room.getPlayer2().equals(client)) {
                 room.setPlayer2(null);
                 client.setStatus(true);
                 room.getPlayer1().setStatus(true);
-                return;
             }
         }
+        //gui thong tin
+        updateListRoom();
     }
 
     // Luồng thực hiện quá trình chơi
@@ -244,7 +301,7 @@ public class PlayRoomControl {
                     room.getPlayer1().getObjOut().flush();
                     room.getPlayer2().getObjOut().writeObject(new Message("RESULT", "THUA"));
                     room.getPlayer2().getObjOut().flush();
-                } else {
+                } else if(result.equals("2")) {
                     String ID2 = room.getPlayer2().getPlayer().getID();
                     float score2 = room.getPlayer2().getPlayer().updateScore(1f);
                     room.getPlayer2().getControl().updateScore(ID2, score2);
@@ -252,6 +309,11 @@ public class PlayRoomControl {
                     room.getPlayer1().getObjOut().writeObject(new Message("RESULT", "THUA"));
                     room.getPlayer1().getObjOut().flush();
                     room.getPlayer2().getObjOut().writeObject(new Message("RESULT", "THANG"));
+                    room.getPlayer2().getObjOut().flush();
+                } else {
+                    room.getPlayer1().getObjOut().writeObject(new Message("CANCEL_ROOM", null));
+                    room.getPlayer1().getObjOut().flush();
+                    room.getPlayer2().getObjOut().writeObject(new Message("CANCEL_ROOM", null));
                     room.getPlayer2().getObjOut().flush();
                 }
                 // reset choice
@@ -265,7 +327,11 @@ public class PlayRoomControl {
 
     // Phương thức xác định người thắng
     private String determineWinner(int answer1, int answer2) {
-        if (answer1 == answer2) {
+        if(answer1 == 0 && answer2 == 0)
+        {
+            return "0";
+        }
+        else if (answer1 == answer2) {
             return "HOA";
         } else if ((answer1 == 1 && answer2 == 3)
                 || (answer1 == 3 && answer2 == 2)
@@ -277,7 +343,7 @@ public class PlayRoomControl {
             return "2";
         }
     }
-    
+
 //    public void shutdown() {
 //        executorService.shutdown();
 //    }

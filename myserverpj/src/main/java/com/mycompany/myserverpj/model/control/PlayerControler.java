@@ -111,6 +111,15 @@ public class PlayerControler {
         }
     }
     
+    public void getRankList() {
+        try {
+            objOut.writeObject(new Message(
+                    "RANK_LIST",
+                    getRank()
+            ));
+        } catch (IOException e) {
+        }
+    }
 
     //các hàm DAO làm việc với DB
     //lay doi tuong player
@@ -243,6 +252,36 @@ public class PlayerControler {
         } catch (Exception e) {
         }
         return false;
+    }
+    
+    private HashMap<String, HashMap<String, String>> getRank() {
+        HashMap<String, HashMap<String, String>> data = new HashMap<>();
+        try (Connection connection = ConnectDB.getConnection()) {
+            String query = "SELECT * FROM player ORDER BY score DESC";
+            PreparedStatement statement = connection.prepareStatement(query);
+            ResultSet resultSet = statement.executeQuery();
+            int rank = 1;
+            while (resultSet.next()) {
+                HashMap<String, String> playerData = new HashMap<>();
+                playerData.put(
+                        "playerName",
+                        resultSet.getString("playerName")
+                );
+                playerData.put(
+                        "score",
+                        String.valueOf(
+                                resultSet.getString("score")
+                        )
+                );
+                data.put(String.valueOf(rank), playerData);
+                rank++;
+            }
+            return data;
+        } catch (Exception e) {
+            // In ra thông tin lỗi
+
+        }
+        return null;
     }
 
 }

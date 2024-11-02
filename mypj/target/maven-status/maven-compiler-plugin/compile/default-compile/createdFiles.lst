@@ -9,6 +9,7 @@ com\mycompany\client\view\MainPanel.class
 com\mycompany\client\view\RegisterForm$4.class
 com\mycompany\client\control\ClientSocket$MessageHandler.class
 com\mycompany\client\view\PlayRoom.class
+com\mycompany\client\view\MainPanel$CustomListPlayerRenderer.class
 com\mycompany\client\view\MainFrame.class
 com\mycompany\client\view\LoginForm$2.class
 com\mycompany\client\view\PlayRoom$2.class
@@ -19,5 +20,4 @@ com\mycompany\client\view\PlayRoom$3.class
 com\mycompany\client\control\ClientSocket$ListenFromServer.class
 com\mycompany\client\view\PlayRoom$5.class
 com\mycompany\client\view\MainFrame$1.class
-com\mycompany\client\view\MainPanel$CustomListRenderer.class
 com\mycompany\client\view\RegisterForm$3.class

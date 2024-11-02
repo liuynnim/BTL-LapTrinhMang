@@ -10,9 +10,11 @@ import com.mycompany.shared.Player;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import static java.awt.image.ImageObserver.HEIGHT;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +28,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
@@ -45,6 +48,7 @@ public class MainPanel extends javax.swing.JPanel {
         this.client = client;
         listPlayer = new ArrayList<>();
         TakeInfo();
+        enterRoom();
     }
 
     /**
@@ -82,11 +86,6 @@ public class MainPanel extends javax.swing.JPanel {
 
         jScrollPane3.setViewportView(jList1);
 
-        jList2.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
         jScrollPane4.setViewportView(jList2);
 
         jButton1.setText("Tạo Phòng");
@@ -152,30 +151,17 @@ public class MainPanel extends javax.swing.JPanel {
         } catch (IOException ex) {
             Logger.getLogger(MainPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
-        while (client.getState() != ClientState.NEW_ROOM) {
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        client.getRankList();
+        while (client.getState() != ClientState.RANK_LIST) {
             try {
                 Thread.sleep(50); // Giảm thời gian chờ
             } catch (InterruptedException e) {
             }
         }
-        playRoom = new PlayRoom(
-                (JFrame) this.frame,
-                listPlayer,
-                client,
-                this,
-                (String) client.getData().get("maPhong")
-        );
-        playRoom.setListPlayer(listPlayer);
-        playRoom.setBounds(0, 0, 400, 300);
-        playRoom.setVisible(true);
-        this.frame.remove(this);
-        this.frame.add(playRoom);
-        this.frame.revalidate();
-        this.frame.repaint();
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
+        showRankDialog((HashMap<String, HashMap<String, String>>) client.getData());
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void TakeInfo() {
@@ -236,6 +222,28 @@ public class MainPanel extends javax.swing.JPanel {
         // hiển thị thông tin của người chơi
         setInfoPlayer();
         getListPlayer();
+        getListRoom();
+    }
+
+    public void createRoom(int IDRoom) {
+        String maPhong = String.valueOf(IDRoom);
+        while (maPhong.length() < 3) {
+            maPhong = "0" + maPhong;
+        }
+        playRoom = new PlayRoom(
+                (JFrame) this.frame,
+                listPlayer,
+                client,
+                this,
+                maPhong
+        );
+        playRoom.setListPlayer(listPlayer);
+        playRoom.setBounds(0, 0, 400, 300);
+        playRoom.setVisible(true);
+        this.frame.remove(this);
+        this.frame.add(playRoom);
+        this.frame.revalidate();
+        this.frame.repaint();
     }
 
     public void showInviteDialog(String inviter, String maPhong) {
@@ -251,13 +259,6 @@ public class MainPanel extends javax.swing.JPanel {
         JButton acceptBt = new JButton("Chấp Nhận");
         acceptBt.addActionListener((ActionEvent e) -> {
             client.acceptInvite(inviter);
-            playRoom = new PlayRoom(
-                    (JFrame) this.frame,
-                    listPlayer,
-                    client,
-                    this,
-                    maPhong);
-
             inviteDialog.dispose();
         });
 
@@ -288,6 +289,10 @@ public class MainPanel extends javax.swing.JPanel {
                 + "\nRank: " + rank);
     }
 
+    //lấy thông tin danh sách người chơi
+    //hàm này để dùng khởi tạo gọi lấy dữ liệu lần đầu tiên
+    //ý tưởng đơn giản là khi có người chơi mới đăng nhập và khởi tạo gửi thông 
+    //điệp lên server và server gửi lại danh sách mới cho tất cả các người chơi
     private void getListPlayer() {
         client.getListPlayers();
         while (client.getState() != ClientState.LIST_PLAYER) {
@@ -300,15 +305,17 @@ public class MainPanel extends javax.swing.JPanel {
     }
 
     // Hiển thị danh sách người chơi
+    // hàm này cũng là hàm cập nhật thụ động khi có các thông điệp yêu cầu cập nhật lại
+    // thông tin danh sách người chơi từ server gửi tới
     public void setListPlayer(HashMap<String, HashMap<String, String>> data) {
         DefaultListModel<String> listModel = new DefaultListModel<>();
         HashMap<String, Boolean> playerStatusMap = new HashMap<>(); // Lưu tên người chơi và trạng thái
 
-        // Giả sử client.getListPlayerData() trả về kiểu HashMap<String, HashMap<String, String>>
-        HashMap<String, HashMap<String, String>> playerDataMap = data;
+        // xóa bỏ danh sách cũ
         listPlayer.clear();
-        if (playerDataMap != null) {
-            for (Map.Entry<String, HashMap<String, String>> entry : playerDataMap.entrySet()) {
+
+        if (data != null) {
+            for (Map.Entry<String, HashMap<String, String>> entry : data.entrySet()) {
                 HashMap<String, String> playerInfo = entry.getValue();
 
                 String playerName = playerInfo.get("playerName");
@@ -332,18 +339,19 @@ public class MainPanel extends javax.swing.JPanel {
 
         // Cập nhật JList
         jList1.setModel(listModel);
-        jList1.setCellRenderer(new CustomListRenderer(playerStatusMap)); // Truyền bản đồ trạng thái vào renderer
+        jList1.setCellRenderer(new CustomListPlayerRenderer(playerStatusMap)); // Truyền bản đồ trạng thái vào renderer
         jList1.revalidate();
         jList1.repaint();
         jScrollPane3.revalidate();
         jScrollPane3.repaint();
     }
 
-    public class CustomListRenderer extends DefaultListCellRenderer {
+    // hàm hiển thị màu trạng thái cảu người chơi
+    public class CustomListPlayerRenderer extends DefaultListCellRenderer {
 
         private final Map<String, Boolean> playerStatusMap; // Bản đồ lưu tên và trạng thái
 
-        public CustomListRenderer(Map<String, Boolean> playerStatusMap) {
+        public CustomListPlayerRenderer(Map<String, Boolean> playerStatusMap) {
             this.playerStatusMap = playerStatusMap;
         }
 
@@ -359,8 +367,7 @@ public class MainPanel extends javax.swing.JPanel {
                 Boolean status = playerStatusMap.get(playerName);
 
                 // Đặt tên người chơi cho label
-                label.setText(playerName);
-
+//                label.setText(playerName);
                 // Điều chỉnh màu nền dựa trên trạng thái
                 if (!isSelected && status != null) {
                     if (status) {
@@ -397,6 +404,100 @@ public class MainPanel extends javax.swing.JPanel {
         return playRoom;
     }
 
+    //chức năng hiển thị danh sách phòng chơi
+    // ý tưởng tương tự với danh sách người chơi 
+    // hơi khác một chút là không có mốc kích hoạt rõ ràng như vậy
+    // hàm gọi tới server lấy danh sách phòng chơi
+    private void getListRoom() {
+        client.getListRoom();
+        while (client.getState() != ClientState.LIST_ROOM) {
+            try {
+                Thread.sleep(50); // Giảm thời gian chờ
+            } catch (InterruptedException e) {
+            }
+        }
+        // data gửi về có maPhong cung là key và giá trị là số người trong phòng
+        setListRoom((HashMap<String, String>) client.getData());
+    }
+
+    // hàm gọi hiển thị danh sách người chơi
+    public void setListRoom(HashMap<String, String> data) {
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        if (data != null) {
+            for (Map.Entry<String, String> entry : data.entrySet()) {
+                String IDRoom = entry.getKey();
+                while (IDRoom.length() < 3) {
+                    IDRoom = "0" + IDRoom;
+                }
+                String numberOfPlayer = entry.getValue();
+                if (numberOfPlayer != null) {
+                    String formattedString = String.format(" Mã Phong: %s             Số người: %s/2", IDRoom, numberOfPlayer);
+                    listModel.addElement(formattedString); // Thêm tên vào listModel
+                }
+            }
+        }
+        // Cập nhật JList
+        jList2.setModel(listModel);
+        jList2.revalidate();
+        jList2.repaint();
+        jScrollPane4.revalidate();
+        jScrollPane4.repaint();
+    }
+
+    private void enterRoom() {
+        jList2.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // Kiểm tra xem có phải là double-click không
+                if (e.getClickCount() == 2) {
+                    // Lấy chỉ số phần tử được click
+                    int index = jList2.locationToIndex(e.getPoint());
+
+                    // Kiểm tra xem chỉ số có hợp lệ không
+                    if (index != -1) {
+                        // Lấy giá trị của phần tử được double-click
+                        String selectedValue = jList2.getModel().getElementAt(index);
+                        String numberOfPlayer = selectedValue.substring(37, 38);
+                        int IDRoom = Integer.parseInt(selectedValue.substring(11, 14));
+                        if (numberOfPlayer.equals("1")) {
+                            client.enterRoom(IDRoom);
+                        } else {
+                            JOptionPane.showMessageDialog(frame,
+                                    "Vui lòng chọn phòng khác!",
+                                    "Phòng đầy mất rồi",
+                                    HEIGHT);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    private void showRankDialog(HashMap<String, HashMap<String, String>> data) {
+        JDialog rankDialog = new JDialog(frame, "Bảng Xếp Hạng", true);
+        rankDialog.setSize(300, 300);
+        rankDialog.setLocationRelativeTo(this);
+
+        JList<String> rankList = new JList<>();
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+
+        for (Map.Entry<String, HashMap<String, String>> entry : data.entrySet()) {
+            String rank = entry.getKey();
+            HashMap<String, String> playerInfo = entry.getValue();
+
+            String playerName = playerInfo.get("playerName");
+            String score = playerInfo.get("score");
+            String formattedString = String.format(" Hạng: %s   %s  - Điểm: %s", rank, playerName, score);
+            listModel.addElement(formattedString); // Thêm tên vào listModel
+        }
+        
+        rankList.setModel(listModel);
+        JScrollPane scrollPane = new JScrollPane(rankList);
+        rankDialog.add(scrollPane, BorderLayout.CENTER);
+        rankDialog.setVisible(true);
+    }
+
+    private String maPhong;
     private JFrame frame;
     private final ClientSocket client;
     private PlayRoom playRoom;

@@ -80,7 +80,10 @@ public class ClientSocket {
                 while (true) {
                     // Nhận thông điệp từ server
                     Message message = (Message) objIn.readObject();
-                    System.out.println(message.getType() + " " + (message.getContent() != null ? message.getContent().toString() : "Content is null"));
+                    System.out.println(message.getType()
+                            + " " + (message.getContent() != null
+                            ? message.getContent().toString()
+                            : "Content is null"));
                     // Đưa thông điệp vào hàng đợi
                     messageQueue.put(message);
                 }
@@ -118,10 +121,19 @@ public class ClientSocket {
                     state = ClientState.LOGIN_FAILED;
                     break;
                 case "LIST_PLAYER":
-                    data = (HashMap<String, HashMap<String, String>>) message.getContent();
-                    state = ClientState.LIST_PLAYER;
                     if (mainPanel != null) {
-                        mainPanel.setListPlayer((HashMap<String, HashMap<String, String>>) data);
+                        mainPanel.setListPlayer((HashMap<String, HashMap<String, String>>) message.getContent());
+                    } else {
+                        data = (HashMap<String, HashMap<String, String>>) message.getContent();
+                        state = ClientState.LIST_PLAYER;
+                    }
+                    break;
+                case "LIST_ROOM":
+                    if (mainPanel != null) {
+                        mainPanel.setListRoom((HashMap<String, String>) message.getContent());
+                    } else {
+                        data = (HashMap<String, String>) message.getContent();
+                        state = ClientState.LIST_ROOM;
                     }
                     break;
                 case "HV_DUP":
@@ -139,8 +151,7 @@ public class ClientSocket {
                     data = (HashMap<String, String>) message.getContent();
                     break;
                 case "NEW_ROOM":
-                    state = ClientState.NEW_ROOM;
-                    data = (HashMap<String, String>) message.getContent();
+                    mainPanel.createRoom((int) message.getContent());
                     break;
                 case "INVITE":
                     data = (HashMap<String, String>) message.getContent();
@@ -148,12 +159,12 @@ public class ClientSocket {
                     String maPhong = (String) data.get("maPhong");
                     mainPanel.showInviteDialog(inviterPlayer, maPhong);
                     break;
-                case "ACCEPTER":
-                    mainPanel.setPlayRoomAnotherPlayer((Player) message.getContent());
-                    mainPanel.showPlayRoom();
-                    break;
+//                case "ACCEPTER":
+//                    mainPanel.setPlayRoomAnotherPlayer((Player) message.getContent());
+//                    mainPanel.showPlayRoom();
+//                    break;
                 case "INFO_ANOTHER_PLAYER":
-                    state = ClientState.INFO_ANOTHER_PLAYER;
+//                    state = ClientState.INFO_ANOTHER_PLAYER;
                     mainPanel.setPlayRoomAnotherPlayer((Player) message.getContent());
                     mainPanel.showPlayRoom();
                     break;
@@ -177,6 +188,10 @@ public class ClientSocket {
                     break;
                 case "RESULT":
                     processingResults((String) message.getContent());
+                    break;
+                case "RANK_LIST":
+                    state = ClientState.RANK_LIST;
+                    data = (HashMap<String, HashMap<String, String>>) message.getContent();
                     break;
                 default:
                     break;
@@ -236,6 +251,14 @@ public class ClientSocket {
         }
     }
 
+    public void getListRoom() {
+        try {
+            objOut.writeObject(new Message("LIST_ROOM", null));
+            objOut.flush();
+        } catch (IOException e) {
+        }
+    }
+
     public void getRank(String ID) {
         try {
             objOut.writeObject(new Message("GET_RANK", ID));
@@ -269,6 +292,7 @@ public class ClientSocket {
     }
 
     public void disconnection() throws IOException {
+        outRoom();
         objOut.writeObject(new Message("DISCONNEC", null));
         objOut.flush();
     }
@@ -290,7 +314,6 @@ public class ClientSocket {
     }
 
     private void processingResults(String result) {
-        System.out.println(result);
         switch (result) {
             case "HOA":
                 // cộng điểm cho mình
@@ -334,4 +357,21 @@ public class ClientSocket {
         } catch (IOException e) {
         }
     }
+    
+    //vào phòng từ tự do
+    
+    public void enterRoom(int IDRoom) {
+        try {
+            objOut.writeObject(new Message("ENTER_ROOM", IDRoom));
+        } catch (Exception e) {
+        }
+    }
+    
+    public void getRankList() {
+        try {
+            objOut.writeObject(new Message("RANK_LIST", null));
+        } catch (Exception e) {
+        }
+    }
+    
 }

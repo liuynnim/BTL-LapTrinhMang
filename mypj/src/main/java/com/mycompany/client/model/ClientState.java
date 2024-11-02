@@ -18,8 +18,9 @@ public enum ClientState {
     REGISTER_FAILED,
     THREE_HIGHEST,
     GET_RANK,
-    NEW_ROOM,
     LIST_PLAYER,
+    LIST_ROOM,
     INFO_ANOTHER_PLAYER,
-    ROOM_FULL
+    ROOM_FULL,
+    RANK_LIST
 }
