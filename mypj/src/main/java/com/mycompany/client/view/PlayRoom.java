@@ -55,6 +55,9 @@ public final class PlayRoom extends javax.swing.JPanel {
             maPhong = "0" + maPhong;
         }
         jLabel1.setText("Phòng " + maPhong);
+        jButton1.setVisible(false);
+        jButton2.setVisible(false);
+        jButton3.setVisible(false);
     }
 
     /**
@@ -317,6 +320,9 @@ public final class PlayRoom extends javax.swing.JPanel {
     // ẩn nút chơi khi bắt đầu chơi và thay đổi Label thành "Bắt Đầu"
     public void hidePlayButtonAndChangeLabel() {
         jButton6.setVisible(false);
+        jButton1.setVisible(true);
+        jButton2.setVisible(true);
+        jButton3.setVisible(true);
         jLabel2.setText("Bắt Đầu");
         jLabel2.revalidate();
         jLabel2.repaint();

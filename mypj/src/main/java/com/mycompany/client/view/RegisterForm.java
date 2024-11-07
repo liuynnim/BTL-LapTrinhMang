@@ -124,7 +124,7 @@ public class RegisterForm extends javax.swing.JPanel {
         String repassword = new String(jPasswordField2.getPassword());
         String email = jTextField2.getText();
         String playerName = jTextField3.getText();
-        if (password.equals(repassword)) {
+        if (password.equals(repassword) && client.getState()!=ClientState.HV_DUP) {
             client.register(username, password, email, playerName);
             try {
                 Thread.sleep(100);
